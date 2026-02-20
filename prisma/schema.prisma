@@ -1,0 +1,73 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  name        String
+  contactName String?
+  email       String   @unique
+  sector      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assessments Assessment[]
+}
+
+model Dimension {
+  id          String   @id @default(uuid())
+  name        String   // Ej: Infraestructura, Procesos, Cliente, Cultura
+  description String?
+  
+  questions   Question[]
+}
+
+model Question {
+  id          String   @id @default(uuid())
+  text        String
+  dimensionId String
+  createdAt   DateTime @default(now())
+  
+  dimension   Dimension @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+  options     Option[]
+  answers     AssessmentAnswer[]
+}
+
+model Option {
+  id          String   @id @default(uuid())
+  text        String
+  weight      Int      // Puntaje asignado
+  questionId  String
+  
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answers     AssessmentAnswer[]
+}
+
+model Assessment {
+  id          String   @id @default(uuid())
+  companyId   String
+  totalScore  Int      @default(0)
+  level       String?  // Incipiente, Transición, Consolidado
+  createdAt   DateTime @default(now())
+  
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  answers     AssessmentAnswer[]
+}
+
+model AssessmentAnswer {
+  id           String   @id @default(uuid())
+  assessmentId String
+  questionId   String
+  optionId     String
+  
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  question     Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  option       Option     @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, questionId])
+}
