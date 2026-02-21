@@ -3,6 +3,8 @@ import prisma from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { MaturityChart } from '@/components/charts/MaturityChart'
+import { DownloadReportButton } from '@/components/pdf/DownloadReportButton'
 
 export default async function AssessmentResultPage({ params }: { params: Promise<{ assessmentId: string }> }) {
     const { assessmentId } = await params;
@@ -10,13 +12,40 @@ export default async function AssessmentResultPage({ params }: { params: Promise
     const assessment = await prisma.assessment.findUnique({
         where: { id: assessmentId },
         include: {
-            company: true
+            company: true,
+            answers: {
+                include: {
+                    option: true,
+                    question: {
+                        include: {
+                            dimension: true
+                        }
+                    }
+                }
+            }
         }
     })
 
     if (!assessment) {
         notFound()
     }
+
+    // Calcular puntaje por dimensión
+    const dimensionScores = assessment.answers.reduce((acc, answer) => {
+        const dimName = answer.question.dimension.name;
+        if (!acc[dimName]) {
+            acc[dimName] = 0;
+        }
+        acc[dimName] += answer.option.weight;
+        return acc;
+    }, {} as Record<string, number>);
+
+    // Formatear para re-charts más adelante
+    const chartData = Object.keys(dimensionScores).map(key => ({
+        subject: key,
+        A: dimensionScores[key],
+        fullMark: 30 // Asumiendo un puntaje máximo por dimensión
+    }));
 
     // Define colores según el nivel de madurez
     const getLevelColor = (level: string | null) => {
@@ -51,16 +80,29 @@ export default async function AssessmentResultPage({ params }: { params: Promise
                         </div>
                     </div>
 
-                    <div className="text-center max-w-md">
+                    <div className="w-full">
+                        <MaturityChart data={chartData} />
+                    </div>
+
+                    <div className="text-center max-w-md pt-4">
                         <p className="text-slate-600">
                             Estos son los resultados iniciales basados en tus respuestas.
                             En el siguiente sprint habilitaremos la funcionalidad para exportar este reporte detallado en PDF.
                         </p>
                     </div>
 
-                    <div className="pt-6 w-full flex justify-center border-t border-slate-100">
-                        <Link href="/" passHref>
-                            <Button variant="outline" size="lg">Hacer un nuevo diagnóstico</Button>
+                    <div className="pt-6 w-full flex flex-col sm:flex-row gap-4 justify-center border-t border-slate-100">
+                        <DownloadReportButton
+                            companyName={assessment.company.name}
+                            contactName={assessment.company.contactName}
+                            sector={assessment.company.sector}
+                            totalScore={assessment.totalScore}
+                            level={assessment.level || 'Pendiente'}
+                            dimensionScores={chartData}
+                            date={new Date(assessment.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        />
+                        <Link href="/" passHref className="w-full sm:w-auto">
+                            <Button variant="outline" size="lg" className="w-full">Volver al Inicio</Button>
                         </Link>
                     </div>
                 </CardContent>
