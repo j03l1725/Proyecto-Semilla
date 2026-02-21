@@ -2,73 +2,88 @@
 
 import prisma from '@/lib/prisma'
 
-interface AssessmentSubmission {
-    companyId: string
-    answers: {
-        questionId: string
-        optionId: string
-    }[]
+// Función para obtener todo el cuestionario con sus opciones
+export async function getQuestions() {
+    try {
+        const questions = await prisma.question.findMany({
+            include: {
+                options: true,
+                dimension: true,
+            },
+            orderBy: { id: 'asc' }
+        })
+
+        return { success: true, questions }
+    } catch (error) {
+        console.error('Error al obtener preguntas:', error)
+        return { success: false, error: 'No se pudieron cargar las preguntas del cuestionario.' }
+    }
 }
 
-// Función auxiliar para calcular el nivel cualitativo de Madurez
-export function getMaturityLevel(totalScore: number): string {
+// Función auxiliar (no exportada) para calcular el nivel cualitativo de Madurez
+function getMaturityLevel(totalScore: number): string {
     if (totalScore <= 8) return 'Incipiente'
     if (totalScore <= 16) return 'Transición'
     return 'Consolidado'
 }
 
-export async function submitAssessment(data: AssessmentSubmission) {
+// Función que calcula el resultado final y guarda en BD
+export async function submitAssessment(companyId: string, selectedOptions: string[]) {
     try {
-        // 1. Validar que la empresa exista
-        const company = await prisma.company.findUnique({
-            where: { id: data.companyId }
+        // 1. Obtener los detalles de las opciones seleccionadas para sumar el peso (weight)
+        const optionsData = await prisma.option.findMany({
+            where: {
+                id: { in: selectedOptions }
+            }
         })
 
-        if (!company) {
-            return { success: false, error: 'Empresa no encontrada.' }
+        if (!optionsData || optionsData.length === 0) {
+            return { success: false, error: 'No se enviaron respuestas válidas.' }
         }
 
-        // 2. Calcular el puntaje total en base a las opciones seleccionadas
-        const optionIds = data.answers.map(a => a.optionId)
-        const optionsData = await prisma.option.findMany({
-            where: { id: { in: optionIds } }
-        })
-
+        // 2. Calcular el puntaje total
         const totalScore = optionsData.reduce((acc, curr) => acc + curr.weight, 0)
 
-        // 3. Determinar el nivel de madurez basado en el score
+        // 3. Determinar el nivel de madurez basado en el score (Matriz Sprint 5.1 -> Base 24)
         const level = getMaturityLevel(totalScore)
 
         // 4. Guardar todo en una transacción para asegurar consistencia
         const result = await prisma.$transaction(async (tx) => {
-            // Evaluamos si ya existe un assessment previo para sobreescribirlo o crear uno nuevo
-            // Para mantener el histórico limpio, primero borramos el assessment viejo si existe.
+
+            // Borramos el histórico viejo si un mismo usuario hace varios assessments 
+            // (Para mantener limpia la data analítica asumiendo que es diagnóstico único)
             await tx.assessment.deleteMany({
-                where: { companyId: data.companyId }
+                where: { companyId }
             })
 
-            // Crear nuevo
+            // 4A. Crear el Assessment principal
             const assessment = await tx.assessment.create({
                 data: {
-                    companyId: data.companyId,
+                    companyId,
                     totalScore,
-                    level,
-                    answers: {
-                        create: data.answers.map(ans => ({
-                            questionId: ans.questionId,
-                            optionId: ans.optionId
-                        }))
-                    }
+                    level
                 }
+            })
+
+            // 4B. Formatear y preparar el insert de las respuestas (AssessmentAnswer) cruzadas
+            const answersToInsert = optionsData.map(opt => ({
+                assessmentId: assessment.id,
+                questionId: opt.questionId,
+                optionId: opt.id
+            }))
+
+            // Crear todos los registros hijo
+            await tx.assessmentAnswer.createMany({
+                data: answersToInsert
             })
 
             return assessment
         })
 
-        return { success: true, assessmentId: result.id, score: totalScore, level }
+        return { success: true, assessmentId: result.id, level: result.level, totalScore: result.totalScore }
 
     } catch (error) {
-        console.error('Error calculando assessment:', error)
-        return { success: false, error: 'Error procesando las respuestas.' }
+        console.error('Error al guardar assessment:', error)
+        return { success: false, error: 'Fallo al procesar las respuestas en el servidor.' }
     }
 }
