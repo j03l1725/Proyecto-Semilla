@@ -7,10 +7,12 @@ export async function getQuestions() {
     try {
         const questions = await prisma.question.findMany({
             include: {
-                options: true,
+                options: {
+                    orderBy: { weight: 'asc' } // Asegurar el orden visual de las opciones por su puntaje
+                },
                 dimension: true,
             },
-            orderBy: { id: 'asc' }
+            orderBy: { createdAt: 'asc' } // Mantener el orden cronológico del marco original (Sprint 5.1 Seed)
         })
 
         return { success: true, questions }
