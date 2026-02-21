@@ -112,7 +112,7 @@ export default function Home() {
           </p>
 
           {/* Stats indicators (Reference based) */}
-          <div className="flex gap-4 sm:gap-6 flex-wrap">
+          <div className="flex gap-4 sm:gap-6 flex-wrap mb-16">
             <div className="px-6 py-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
               <div className="text-2xl font-bold text-white mb-1">100%</div>
               <div className="text-sm text-slate-400 font-medium">Digital</div>
@@ -124,6 +124,29 @@ export default function Home() {
             <div className="px-6 py-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
               <div className="text-2xl font-bold text-white mb-1">36 Pts</div>
               <div className="text-sm text-slate-400 font-medium">Taxonomía</div>
+            </div>
+          </div>
+
+          {/* Logos de Respaldo */}
+          <div className="pt-8 border-t border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500 fill-mode-both">
+            <p className="text-xs text-slate-500 font-bold mb-5 uppercase tracking-[0.2em]">Respaldado por</p>
+            <div className="flex items-center gap-8 md:gap-12 flex-wrap">
+              <a href="https://wearecatalystai.com" target="_blank" rel="noopener noreferrer" className="block group transition-transform hover:scale-105">
+                <img
+                  src="/catalyst-logo.png"
+                  alt="Catalyst AI"
+                  className="h-8 md:h-10 w-auto object-contain invert mix-blend-screen opacity-60 group-hover:opacity-100 transition-all duration-300"
+                />
+              </a>
+              <a href="https://www.indoamerica.edu.ec/" target="_blank" rel="noopener noreferrer" className="block group transition-transform hover:scale-105">
+                <div className="bg-white/90 group-hover:bg-white p-2 md:p-2.5 rounded-lg md:rounded-xl transition-all duration-300 shadow-lg shadow-black/20 group-hover:shadow-green-500/20">
+                  <img
+                    src="/indoamerica-logo.png"
+                    alt="Universidad Indoamérica"
+                    className="h-7 md:h-9 w-auto object-contain opacity-90 group-hover:opacity-100 transition-all duration-300"
+                  />
+                </div>
+              </a>
             </div>
           </div>
         </motion.div>

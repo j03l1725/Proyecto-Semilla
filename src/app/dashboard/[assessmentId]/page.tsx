@@ -187,8 +187,8 @@ export default async function AssessmentResultPage({ params }: { params: Promise
 
             {/* Footer Notice Oscuro */}
             <div className="mt-16 text-center max-w-lg mx-auto relative z-10 pb-8">
-                <p className="text-sm text-slate-500 bg-[#131b17]/80 backdrop-blur-md py-3 px-6 rounded-full border border-white/5 shadow-xl">
-                    Herramienta de referencia estratégica. Desarrollado por el equipo de Catalyst.
+                <p className="text-sm text-slate-400 bg-[#131b17]/80 backdrop-blur-md py-3 px-6 rounded-full border border-white/5 shadow-xl">
+                    Herramienta de referencia estratégica. Desarrollado por el equipo de <a href="https://wearecatalystai.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 font-semibold hover:text-emerald-300 hover:underline transition-colors">Catalyst</a>.
                 </p>
             </div>
         </div>
