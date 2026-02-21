@@ -22,8 +22,8 @@ export async function getQuestions() {
 
 // Función auxiliar (no exportada) para calcular el nivel cualitativo de Madurez
 function getMaturityLevel(totalScore: number): string {
-    if (totalScore <= 8) return 'Incipiente'
-    if (totalScore <= 16) return 'Transición'
+    if (totalScore <= 12) return 'Incipiente'
+    if (totalScore <= 24) return 'Transición'
     return 'Consolidado'
 }
 

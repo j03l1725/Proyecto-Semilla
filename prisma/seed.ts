@@ -11,20 +11,22 @@ const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-    console.log('🌱 Iniciando el sembrado de datos (seed) con la Matriz Real (Sprint 5.1)...')
+    console.log('🌱 Iniciando el sembrado de datos (seed) con la Matriz Hexagonal (Sprint 5.1 Final)...')
 
-    // 0. Limpiar datos antiguos (Opcional, útil para resetear en desarrollo)
+    // 0. Limpiar datos antiguos para evitar duplicidad
     console.log('Purgando registros de catálogo anteriores...')
     await prisma.option.deleteMany({})
     await prisma.question.deleteMany({})
     await prisma.dimension.deleteMany({})
 
-    // 1. Crear Dimensiones Oficiales
+    // 1. Crear 6 Dimensiones Oficiales
     const dimensiones = [
-        { name: 'Estrategia y Presencia Digital', description: 'Visibilidad online, canales de venta y marketing' },
-        { name: 'Gestión de Clientes (CRM) y Ventas', description: 'Almacenamiento de datos, fidelización y seguimiento' },
-        { name: 'Operaciones y Automatización', description: 'Inventario, reservas y flujos de trabajo repetitivos' },
-        { name: 'Cultura de Innovación y Análisis de Datos (IA)', description: 'Capacitación del equipo, uso de IA y métricas' }
+        { name: 'Tecnologías y habilidades digitales', description: 'Equipamiento informático, internet y software' },
+        { name: 'Comunicaciones y canales de venta', description: 'Transaccionalidad digital, métodos de pago y atención' },
+        { name: 'Organización y personas', description: 'Capacitación, coordinación de trabajo interno y soporte' },
+        { name: 'Estrategia y transformación digital', description: 'Planificación tecnológica, IA y ciberseguridad' },
+        { name: 'Datos y analítica', description: 'Recopilación de datos de clientes, tipos de datos y análisis' },
+        { name: 'Procesos', description: 'Control de inventario, finanzas y automatización de flujos' }
     ]
 
     for (const d of dimensiones) {
@@ -33,125 +35,177 @@ async function main() {
         })
     }
 
-    const d1 = await prisma.dimension.findFirst({ where: { name: 'Estrategia y Presencia Digital' } })
-    const d2 = await prisma.dimension.findFirst({ where: { name: 'Gestión de Clientes (CRM) y Ventas' } })
-    const d3 = await prisma.dimension.findFirst({ where: { name: 'Operaciones y Automatización' } })
-    const d4 = await prisma.dimension.findFirst({ where: { name: 'Cultura de Innovación y Análisis de Datos (IA)' } })
+    const d1 = await prisma.dimension.findFirst({ where: { name: 'Tecnologías y habilidades digitales' } })
+    const d2 = await prisma.dimension.findFirst({ where: { name: 'Comunicaciones y canales de venta' } })
+    const d3 = await prisma.dimension.findFirst({ where: { name: 'Organización y personas' } })
+    const d4 = await prisma.dimension.findFirst({ where: { name: 'Estrategia y transformación digital' } })
+    const d5 = await prisma.dimension.findFirst({ where: { name: 'Datos y analítica' } })
+    const d6 = await prisma.dimension.findFirst({ where: { name: 'Procesos' } })
 
-    if (!d1 || !d2 || !d3 || !d4) {
-        throw new Error("No se pudieron crear o encontrar las dimensiones.")
+    if (!d1 || !d2 || !d3 || !d4 || !d5 || !d6) {
+        throw new Error("No se pudieron crear o encontrar todas las 6 dimensiones.")
     }
 
-    // 2. Crear Array de Preguntas y Opciones (Matriz Real)
-    // Se elimina campo 'order' ya que no existe en el schema, Prisma las ordena por Date (createdAt)
+    // 2. Crear Array de Preguntas y Opciones (Matriz Hexagonal - 18 Preguntas)
     const seedData = [
-        // --- Dimensión 1 ---
+        // --- Dimensión 1: Tecnologías y habilidades digitales ---
         {
-            dimensionId: d1.id, text: '¿Cuál es el canal principal de ventas o captación de clientes de su emprendimiento?',
+            dimensionId: d1.id, text: '¿Cómo describiría el equipamiento informático (computadoras, celulares) dedicado a su negocio?',
             options: [
-                { text: 'Local físico o ventas de boca en boca sin canales digitales.', weight: 0 },
-                { text: 'Redes sociales (Facebook, Instagram, TikTok) y WhatsApp estándar.', weight: 1 },
-                { text: 'Comercio electrónico propio, catálogos integrados o aplicaciones de delivery.', weight: 2 }
+                { text: 'Uso dispositivos personales básicos y antiguos.', weight: 0 },
+                { text: 'Cuento con equipos dedicados, pero requieren actualización para usar software moderno.', weight: 1 },
+                { text: 'Cuento con equipos modernos, actualizados y suficientes para la operación.', weight: 2 }
             ]
         },
         {
-            dimensionId: d1.id, text: '¿Cómo gestiona la creación de contenido y publicidad digital?',
+            dimensionId: d1.id, text: '¿Qué tipo de conexión a Internet utiliza en la empresa?',
             options: [
-                { text: 'No realizo publicidad ni creo contenido.', weight: 0 },
-                { text: 'Publico esporádicamente usando herramientas básicas de mi teléfono.', weight: 1 },
-                { text: 'Uso herramientas profesionales (Canva, CapCut) y planifico campañas con presupuesto.', weight: 2 }
+                { text: 'No tenemos internet fijo; usamos planes de datos móviles personales.', weight: 0 },
+                { text: 'Conexión fija básica (ADSL o móvil) compartida con uso doméstico.', weight: 1 },
+                { text: 'Conexión de fibra óptica o banda ancha de alta velocidad exclusiva para el negocio.', weight: 2 }
             ]
         },
         {
-            dimensionId: d1.id, text: '¿Qué métodos de pago digitales ofrece a sus clientes?',
+            dimensionId: d1.id, text: '¿Qué tipo de programas o aplicaciones de uso general utiliza diariamente?',
             options: [
-                { text: 'Solo efectivo.', weight: 0 },
+                { text: 'Ninguno, o solo herramientas integradas en el celular (ej. notas, calculadora).', weight: 0 },
+                { text: 'Programas básicos instalados en la computadora (Word, Excel tradicional).', weight: 1 },
+                { text: 'Ecosistemas en la nube colaborativos (Google Workspace, Microsoft 365, almacenamiento en nube).', weight: 2 }
+            ]
+        },
+
+        // --- Dimensión 2: Comunicaciones y canales de venta ---
+        {
+            dimensionId: d2.id, text: '¿Qué nivel de transaccionalidad tienen sus canales digitales (Redes, Web)?',
+            options: [
+                { text: 'Solo los usamos como vitrina informativa.', weight: 0 },
+                { text: 'Recibimos pedidos por redes o WhatsApp, pero la gestión y pago es manual.', weight: 1 },
+                { text: 'Los clientes cotizan, piden y pagan de forma autónoma (E-commerce integrado).', weight: 2 }
+            ]
+        },
+        {
+            dimensionId: d2.id, text: '¿Cuáles medios de pago tiene disponibles para sus clientes?',
+            options: [
+                { text: 'Solo aceptamos efectivo.', weight: 0 },
                 { text: 'Efectivo y transferencias bancarias directas.', weight: 1 },
-                { text: 'Pasarelas de pago (tarjetas de crédito/débito) y links de cobro online.', weight: 2 }
+                { text: 'Billeteras electrónicas, pasarelas de pago (tarjetas) y links de cobro online.', weight: 2 }
+            ]
+        },
+        {
+            dimensionId: d2.id, text: '¿Cómo maneja la atención al cliente digital, especialmente fuera de horario?',
+            options: [
+                { text: 'Respondemos manualmente solo en horario laboral.', weight: 0 },
+                { text: 'Tenemos mensajes de ausencia o respuestas rápidas configuradas.', weight: 1 },
+                { text: 'Usamos Chatbots automatizados o Inteligencia Artificial para atención 24/7.', weight: 2 }
             ]
         },
 
-        // --- Dimensión 2 ---
+        // --- Dimensión 3: Organización y personas ---
         {
-            dimensionId: d2.id, text: '¿Cómo almacena y gestiona la información de sus clientes?',
+            dimensionId: d3.id, text: '¿Se han capacitado los empleados (o usted) en temas digitales en los últimos 12 meses?',
             options: [
-                { text: 'En una libreta física o no guardo información.', weight: 0 },
-                { text: 'En hojas de cálculo (Excel/Google Sheets) o contactos del teléfono.', weight: 1 },
-                { text: 'Utilizo un software CRM especializado (HubSpot, Zoho, etc.).', weight: 2 }
+                { text: 'No nos hemos capacitado.', weight: 0 },
+                { text: 'Aprendemos empíricamente o tomamos cursos gratuitos esporádicos.', weight: 1 },
+                { text: 'Tenemos un presupuesto/plan para capacitaciones frecuentes (trimestrales/semestrales).', weight: 2 }
             ]
         },
         {
-            dimensionId: d2.id, text: '¿Cómo maneja el seguimiento post-venta o la fidelización?',
+            dimensionId: d3.id, text: '¿La empresa utiliza software para coordinar el trabajo interno o proyectos?',
             options: [
-                { text: 'No hago seguimiento después de la venta.', weight: 0 },
-                { text: 'Envío mensajes manuales a clientes frecuentes.', weight: 1 },
-                { text: 'Tengo campañas automatizadas de email marketing o mensajes programados.', weight: 2 }
+                { text: 'No, coordinamos todo verbalmente o por mensajes personales.', weight: 0 },
+                { text: 'Usamos grupos de WhatsApp o correos electrónicos.', weight: 1 },
+                { text: 'Usamos software especializado de gestión de tareas (Asana, Trello, Planner).', weight: 2 }
             ]
         },
         {
-            dimensionId: d2.id, text: '¿Qué nivel de personalización ofrece en su atención al cliente?',
+            dimensionId: d3.id, text: '¿Cómo gestiona el soporte técnico o desarrollo tecnológico de la empresa?',
             options: [
-                { text: 'Trato a todos los clientes por igual sin registrar su historial.', weight: 0 },
-                { text: 'Reviso conversaciones pasadas manualmente antes de responder.', weight: 1 },
-                { text: 'El sistema me muestra el historial de compras y preferencias automáticamente.', weight: 2 }
-            ]
-        },
-
-        // --- Dimensión 3 ---
-        {
-            dimensionId: d3.id, text: '¿Cómo controla el inventario de sus productos o la agenda de servicios?',
-            options: [
-                { text: 'Control visual o manual.', weight: 0 },
-                { text: 'Registro en hojas de cálculo actualizadas periódicamente.', weight: 1 },
-                { text: 'Software de gestión (ERP), punto de venta (POS) o agenda online sincronizada.', weight: 2 }
-            ]
-        },
-        {
-            dimensionId: d3.id, text: '¿Utiliza alguna herramienta de automatización para tareas repetitivas?',
-            options: [
-                { text: 'No, todo el trabajo operativo se hace de forma 100% manual.', weight: 0 },
-                { text: 'Uso herramientas básicas como respuestas rápidas en WhatsApp Business.', weight: 1 },
-                { text: 'Uso integraciones avanzadas (Zapier, Make) o flujos de trabajo automatizados.', weight: 2 }
-            ]
-        },
-        {
-            dimensionId: d3.id, text: '¿Cómo maneja la atención al cliente fuera del horario comercial?',
-            options: [
-                { text: 'El cliente debe esperar al día siguiente sin recibir respuesta.', weight: 0 },
-                { text: 'Tengo un mensaje automático de ausencia configurado.', weight: 1 },
-                { text: 'Utilizo un Chatbot automatizado para precalificar o resolver dudas 24/7.', weight: 2 }
+                { text: 'Lo intentamos resolver nosotros mismos buscando en internet.', weight: 0 },
+                { text: 'Pedimos ayuda informal a conocidos cuando algo se daña.', weight: 1 },
+                { text: 'Contratamos servicios especializados (internos o tercerizados) para soporte o desarrollo.', weight: 2 }
             ]
         },
 
-        // --- Dimensión 4 ---
+        // --- Dimensión 4: Estrategia y transformación digital ---
         {
-            dimensionId: d4.id, text: '¿Utiliza modelos de Inteligencia Artificial (ChatGPT, Gemini, Claude) en su negocio?',
+            dimensionId: d4.id, text: '¿Existe un plan definido para aprovechar las tecnologías digitales en su empresa?',
+            options: [
+                { text: 'No tenemos un plan; implementamos cosas a medida que surgen emergencias.', weight: 0 },
+                { text: 'Tenemos ideas aisladas de lo que queremos lograr (ej. vender más por redes).', weight: 1 },
+                { text: 'Tenemos un plan estratégico con presupuesto e hitos de implementación tecnológica.', weight: 2 }
+            ]
+        },
+        {
+            dimensionId: d4.id, text: '¿Utiliza modelos de Inteligencia Artificial (ChatGPT, Gemini, etc.) estratégicamente?',
             options: [
                 { text: 'No conozco o no utilizo herramientas de IA.', weight: 0 },
-                { text: 'Las he probado esporádicamente para redactar textos o ideas.', weight: 1 },
-                { text: 'La IA está integrada en mis procesos diarios de creatividad, análisis o atención.', weight: 2 }
+                { text: 'Las uso esporádicamente para redactar textos o buscar ideas.', weight: 1 },
+                { text: 'La IA está integrada en procesos clave (creación, análisis, innovación).', weight: 2 }
             ]
         },
         {
-            dimensionId: d4.id, text: '¿Cómo toma decisiones estratégicas para el crecimiento de su negocio?',
+            dimensionId: d4.id, text: '¿Qué medidas de ciberseguridad aplica en su negocio?',
             options: [
-                { text: 'Basado en la intuición y la experiencia diaria.', weight: 0 },
-                { text: 'Reviso ingresos básicos y "likes" en redes sociales.', weight: 1 },
-                { text: 'Analizo métricas clave (conversiones, retorno de inversión, costos de adquisición).', weight: 2 }
+                { text: 'Ninguna, no usamos contraseñas seguras ni antivirus.', weight: 0 },
+                { text: 'Usamos antivirus básico y respaldos manuales en USB de vez en cuando.', weight: 1 },
+                { text: 'Políticas estrictas de contraseñas, respaldos automáticos en la nube y protección de datos.', weight: 2 }
+            ]
+        },
+
+        // --- Dimensión 5: Datos y analítica ---
+        {
+            dimensionId: d5.id, text: '¿Cómo maneja actualmente la base de datos de sus clientes?',
+            options: [
+                { text: 'En papel o confiando en la memoria.', weight: 0 },
+                { text: 'En hojas de cálculo estándar (Excel, Sheets).', weight: 1 },
+                { text: 'En un software CRM especializado (HubSpot, Zoho, Salesforce).', weight: 2 }
             ]
         },
         {
-            dimensionId: d4.id, text: '¿Qué nivel de capacitación digital tiene el equipo de trabajo?',
+            dimensionId: d5.id, text: '¿Qué tipos de datos recopila regularmente la empresa?',
             options: [
-                { text: 'Conocimientos informáticos muy básicos.', weight: 0 },
-                { text: 'Saben usar las herramientas actuales pero cuesta adaptar nuevas tecnologías.', weight: 1 },
-                { text: 'Existe una cultura de aprendizaje continuo y adaptación rápida a nuevas herramientas.', weight: 2 }
+                { text: 'Solo lo necesario para la factura (nombre y cédula).', weight: 0 },
+                { text: 'Datos de contacto y redes sociales para enviar promociones generales.', weight: 1 },
+                { text: 'Historial de compras, preferencias, efectividad de campañas y calidad de servicio.', weight: 2 }
+            ]
+        },
+        {
+            dimensionId: d5.id, text: '¿Cómo utiliza esos datos para la toma de decisiones?',
+            options: [
+                { text: 'No realizamos análisis de datos.', weight: 0 },
+                { text: 'Revisamos reportes básicos de ventas a fin de mes.', weight: 1 },
+                { text: 'Usamos tableros (dashboards) en tiempo real para personalizar interacciones y optimizar procesos.', weight: 2 }
+            ]
+        },
+
+        // --- Dimensión 6: Procesos ---
+        {
+            dimensionId: d6.id, text: '¿Cómo controla el inventario de productos o la agenda de servicios?',
+            options: [
+                { text: 'Control completamente manual o visual.', weight: 0 },
+                { text: 'Registro en hojas de cálculo que se actualizan periódicamente.', weight: 1 },
+                { text: 'Software de punto de venta (POS) o agenda online conectada en tiempo real.', weight: 2 }
+            ]
+        },
+        {
+            dimensionId: d6.id, text: '¿Utiliza software especializado para la gestión financiera y contable?',
+            options: [
+                { text: 'Llevamos las cuentas en un cuaderno.', weight: 0 },
+                { text: 'Usamos Excel para llevar ingresos y egresos básicos.', weight: 1 },
+                { text: 'Usamos software financiero/contable que automatiza facturación, impuestos y flujo de caja.', weight: 2 }
+            ]
+        },
+        {
+            dimensionId: d6.id, text: '¿Utiliza herramientas para la automatización de flujos de trabajo?',
+            options: [
+                { text: 'No, todas las tareas operativas son manuales.', weight: 0 },
+                { text: 'Automatizaciones muy básicas (ej. correos programados).', weight: 1 },
+                { text: 'Integración entre sistemas (ej. Zapier) donde una acción dispara múltiples procesos automáticos sin intervención humana.', weight: 2 }
             ]
         }
     ]
 
-    console.log('Insertando preguntas y opciones...')
-
+    console.log('Insertando 18 preguntas y 54 opciones...')
 
     // Inserción secuencial para asegurar que en la UI mantengan este mismo orden de inserción visual
     for (const item of seedData) {
@@ -168,7 +222,7 @@ async function main() {
         })
     }
 
-    console.log('✅ Matriz de 12 preguntas oficiales insertadas correctamente con sus pesos (0-2).')
+    console.log('✅ Matriz de 18 preguntas oficiales insertadas correctamente con sus pesos (0-2).')
     console.log('🏁 Sembrado completado.')
 }
 
