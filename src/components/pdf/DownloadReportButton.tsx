@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import { AssessmentReport } from './AssessmentReport'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Download } from 'lucide-react'
 
 // Reuse interfaces for typing consistency
@@ -38,17 +38,14 @@ export function DownloadReportButton(props: DownloadReportProps) {
         <PDFDownloadLink
             document={<AssessmentReport {...props} />}
             fileName={`Diagnostico_Madurez_Digital_${props.companyName.replace(/\s+/g, '_')}.pdf`}
+            className={buttonVariants({ variant: 'default', size: 'lg', className: 'w-full sm:w-auto font-semibold' })}
+            style={{ textDecoration: 'none' }}
         >
             {({ loading }: { loading: boolean }) => (
-                <Button
-                    variant="default"
-                    size="lg"
-                    disabled={loading}
-                    className="w-full sm:w-auto font-semibold"
-                >
+                <>
                     <Download className="mr-2 h-4 w-4" />
                     {loading ? 'Generando PDF...' : 'Descargar Reporte Completo'}
-                </Button>
+                </>
             )}
         </PDFDownloadLink>
     )
