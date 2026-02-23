@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LevelDistributionChart } from '@/components/charts/LevelDistributionChart'
+import { DimensionAvgChart } from '@/components/charts/DimensionAvgChart'
 import { Users, BarChart3, TrendingUp, ShieldAlert, Download } from 'lucide-react'
 import { logoutAdmin } from '@/app/actions/auth'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,15 @@ export default async function AdminDashboardPage() {
         prisma.assessment.count({ where: { level: 'Transición' } }),
         prisma.assessment.count({ where: { level: 'Consolidado' } }),
         prisma.assessment.findMany({
-            include: { company: true },
+            include: {
+                company: true,
+                answers: {
+                    include: {
+                        option: true,
+                        question: { include: { dimension: true } }
+                    }
+                }
+            },
             orderBy: { createdAt: 'desc' }
         })
     ])
@@ -25,6 +34,39 @@ export default async function AdminDashboardPage() {
         { name: 'Transición', value: transicion },
         { name: 'Consolidado', value: consolidados },
     ]
+
+    // 2. Calcular los promedios globales por cada una de las 6 dimensiones
+    const dimensionTotals: Record<string, { sum: number; count: number }> = {};
+
+    allAssessments.forEach(ass => {
+        const localScores: Record<string, number> = {};
+
+        // Sumar puntajes de cada dimensión en la evaluación individual
+        ass.answers.forEach(ans => {
+            const dimName = ans.question.dimension.name;
+            if (!localScores[dimName]) localScores[dimName] = 0;
+            localScores[dimName] += ans.option.weight;
+        });
+
+        // Acumularlos en el mapeo global
+        Object.entries(localScores).forEach(([dim, score]) => {
+            if (!dimensionTotals[dim]) dimensionTotals[dim] = { sum: 0, count: 0 };
+            dimensionTotals[dim].sum += score;
+            dimensionTotals[dim].count += 1;
+        });
+    });
+
+    // Formatear promedios para el Chart (Usamos verde Catalyst #10b981 base)
+    const avgChartData = Object.keys(dimensionTotals).map((dim, i) => {
+        const avg = dimensionTotals[dim].sum / dimensionTotals[dim].count;
+        // Graduar el color verde de Catalyst
+        const colors = ['#10b981', '#34d399', '#059669', '#0d9488', '#0f766e', '#14b8a6'];
+        return {
+            name: dim,
+            score: Number(avg.toFixed(2)),
+            color: colors[i % colors.length]
+        };
+    }).sort((a, b) => b.score - a.score); // Del mejor punteado al peor
 
     return (
         <div className="min-h-screen bg-slate-50 p-6 md:p-12">
@@ -88,27 +130,33 @@ export default async function AdminDashboardPage() {
                     </Card>
                 </div>
 
-                {/* Distribución Gráfica y Siguientes Fases */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Card className="shadow-sm">
+                {/* Gráficos de Análisis Medio Superior */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <Card className="shadow-sm lg:col-span-1 border-slate-100 flex flex-col">
                         <CardHeader>
-                            <CardTitle className="text-lg text-slate-800">Distribución de Madurez Digital</CardTitle>
+                            <CardTitle className="text-lg text-slate-800">Distribución Global</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="flex-1 flex flex-col justify-center items-center -mt-6">
                             <LevelDistributionChart data={chartData} />
+
+                            <div className="w-full mt-2 gap-3 flex flex-col text-center">
+                                <Link href="/api/export" passHref className="w-full">
+                                    <Button size="sm" variant="outline" className="w-full hover:bg-slate-50">
+                                        <Download className="h-4 w-4 mr-2 text-slate-500" /> Exportar a CSV
+                                    </Button>
+                                </Link>
+                            </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="shadow-sm border-blue-100 flex flex-col justify-center items-center text-center p-6 h-full">
-                        <h3 className="text-xl font-bold text-slate-800 mb-2">Exportar Base de Datos</h3>
-                        <p className="text-slate-500 text-sm mb-6 max-w-sm">
-                            Descarga los datos crudos consolidados en un archivo CSV formateado para análisis cruzados en Excel, PowerBI o SPSS.
-                        </p>
-                        <Link href="/api/export" passHref>
-                            <Button size="lg" className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold flex items-center gap-2">
-                                <Download className="h-4 w-4" /> Exportar Tabla a CSV
-                            </Button>
-                        </Link>
+                    <Card className="shadow-sm lg:col-span-2 border-slate-100 h-full">
+                        <CardHeader>
+                            <CardTitle className="text-lg text-slate-800">Desempeño Promedio por Escenario (Max: 6 Pts)</CardTitle>
+                            <p className="text-xs text-slate-500 mt-1">Identifica el área estructural de madurez donde las Pymes del grupo fallan más a nivel nacional.</p>
+                        </CardHeader>
+                        <CardContent>
+                            <DimensionAvgChart data={avgChartData} />
+                        </CardContent>
                     </Card>
                 </div>
 
