@@ -2,21 +2,37 @@
 
 import prisma from '@/lib/prisma'
 
-export async function registerCompany(data: { name: string; email: string; sector?: string; contactName?: string }) {
+interface CompanyData {
+    name: string
+    contactName: string
+    email: string
+    phone?: string
+    sector?: string
+    province?: string
+    city?: string
+}
+
+export async function registerCompany(data: CompanyData) {
     try {
         // 1 y 2. Verificar si el correo existe y actualizar sus datos con lo nuevo, o crearlo si es nuevo
         const company = await prisma.company.upsert({
             where: { email: data.email },
             update: {
                 name: data.name,
-                sector: data.sector,
                 contactName: data.contactName,
+                phone: data.phone,
+                sector: data.sector,
+                province: data.province,
+                city: data.city,
             },
             create: {
                 name: data.name,
-                email: data.email,
-                sector: data.sector,
                 contactName: data.contactName,
+                email: data.email,
+                phone: data.phone,
+                sector: data.sector,
+                province: data.province,
+                city: data.city,
             },
         })
 

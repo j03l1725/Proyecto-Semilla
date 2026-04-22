@@ -10,9 +10,12 @@ datasource db {
 model Company {
   id          String   @id @default(uuid())
   name        String
-  contactName String?
+  contactName String
   email       String   @unique
+  phone       String?
   sector      String?
+  province    String?
+  city        String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { MaturityChart } from '@/components/charts/MaturityChart'
 import { DownloadReportButton } from '@/components/pdf/DownloadReportButton'
-import { ArrowLeft, Building2, User, Briefcase, Calendar, Award, FileBarChart } from 'lucide-react'
+import { ArrowLeft, Building2, User, Briefcase, Calendar, Award, FileBarChart, Phone, MapPin } from 'lucide-react'
 
 // Pesos oficiales del modelo v2.0
 const DIMENSION_WEIGHTS: Record<string, number> = {
@@ -129,8 +129,17 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
                             {assessment.company.contactName && (
                                 <span className="flex items-center gap-1"><User className="w-4 h-4" /> {assessment.company.contactName}</span>
                             )}
+                            {assessment.company.phone && (
+                                <span className="flex items-center gap-1"><Phone className="w-4 h-4" /> {assessment.company.phone}</span>
+                            )}
                             {assessment.company.sector && (
                                 <span className="flex items-center gap-1"><Briefcase className="w-4 h-4" /> {assessment.company.sector}</span>
+                            )}
+                            {(assessment.company.city || assessment.company.province) && (
+                                <span className="flex items-center gap-1">
+                                    <MapPin className="w-4 h-4" />
+                                    {[assessment.company.city, assessment.company.province].filter(Boolean).join(', ')}
+                                </span>
                             )}
                             <span className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4" />
