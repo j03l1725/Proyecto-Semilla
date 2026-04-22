@@ -11,7 +11,7 @@ const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-    console.log('🌱 Iniciando el sembrado de datos (seed) con la Matriz Hexagonal (Sprint 5.1 Final)...')
+    console.log('🌱 Iniciando el sembrado de datos (seed) con el Cuestionario v2.0 (21 preguntas)...')
 
     // 0. Limpiar datos antiguos para evitar duplicidad
     console.log('Purgando registros de catálogo anteriores...')
@@ -23,8 +23,8 @@ async function main() {
     const dimensiones = [
         { name: 'Tecnologías y habilidades digitales', description: 'Equipamiento informático, internet y software' },
         { name: 'Comunicaciones y canales de venta', description: 'Transaccionalidad digital, métodos de pago y atención' },
-        { name: 'Organización y personas', description: 'Capacitación, coordinación de trabajo interno y soporte' },
-        { name: 'Estrategia y transformación digital', description: 'Planificación tecnológica, IA y ciberseguridad' },
+        { name: 'Organización y personas', description: 'Capacitación, plan de desarrollo, coordinación de trabajo interno y soporte' },
+        { name: 'Estrategia y transformación digital', description: 'Planificación tecnológica, gobernanza, IA, ciberseguridad y protección de datos' },
         { name: 'Datos y analítica', description: 'Recopilación de datos de clientes, tipos de datos y análisis' },
         { name: 'Procesos', description: 'Control de inventario, finanzas y automatización de flujos' }
     ]
@@ -46,9 +46,11 @@ async function main() {
         throw new Error("No se pudieron crear o encontrar todas las 6 dimensiones.")
     }
 
-    // 2. Crear Array de Preguntas y Opciones (Matriz Hexagonal - 18 Preguntas)
+    // 2. Crear Array de Preguntas y Opciones (Cuestionario v2.0 — 21 Preguntas)
     const seedData = [
-        // --- Dimensión 1: Tecnologías y habilidades digitales ---
+        // ═══════════════════════════════════════════════════════════════
+        // Dimensión 1: Tecnologías y habilidades digitales (3 preguntas)
+        // ═══════════════════════════════════════════════════════════════
         {
             dimensionId: d1.id, text: '¿Cómo describiría el equipamiento informático (computadoras, celulares) dedicado a su negocio?',
             options: [
@@ -74,13 +76,16 @@ async function main() {
             ]
         },
 
-        // --- Dimensión 2: Comunicaciones y canales de venta ---
+        // ═══════════════════════════════════════════════════════════════
+        // Dimensión 2: Comunicaciones y canales de venta (3 preguntas)
+        // ═══════════════════════════════════════════════════════════════
         {
-            dimensionId: d2.id, text: '¿Qué nivel de transaccionalidad tienen sus canales digitales (Redes, Web)?',
+            // 🔄 REFORMULADA v2: Se eliminó "transaccionalidad" por lenguaje accesible
+            dimensionId: d2.id, text: '¿Qué pueden hacer sus clientes a través de sus canales digitales (redes sociales, página web)?',
             options: [
-                { text: 'Solo los usamos como vitrina informativa.', weight: 0 },
-                { text: 'Recibimos pedidos por redes o WhatsApp, pero la gestión y pago es manual.', weight: 1 },
-                { text: 'Los clientes cotizan, piden y pagan de forma autónoma (E-commerce integrado).', weight: 2 }
+                { text: 'Solo pueden ver información sobre nuestros productos o servicios.', weight: 0 },
+                { text: 'Pueden hacer pedidos por redes o WhatsApp, pero el pago y la gestión los hacemos manualmente.', weight: 1 },
+                { text: 'Pueden buscar productos, hacer pedidos y pagar directamente en línea sin necesidad de contactarnos.', weight: 2 }
             ]
         },
         {
@@ -100,13 +105,25 @@ async function main() {
             ]
         },
 
-        // --- Dimensión 3: Organización y personas ---
+        // ═══════════════════════════════════════════════════════════════
+        // Dimensión 3: Organización y personas (4 preguntas — +1 nueva)
+        // ═══════════════════════════════════════════════════════════════
         {
-            dimensionId: d3.id, text: '¿Se han capacitado los empleados (o usted) en temas digitales en los últimos 12 meses?',
+            // 🔄 REFORMULADA v2: Enfocada en acción concreta de capacitación
+            dimensionId: d3.id, text: '¿Usted o su equipo han aprendido a usar alguna herramienta digital nueva en el último año?',
             options: [
-                { text: 'No nos hemos capacitado.', weight: 0 },
-                { text: 'Aprendemos empíricamente o tomamos cursos gratuitos esporádicos.', weight: 1 },
-                { text: 'Tenemos un presupuesto/plan para capacitaciones frecuentes (trimestrales/semestrales).', weight: 2 }
+                { text: 'No, no hemos aprendido nada nuevo en tecnología.', weight: 0 },
+                { text: 'Sí, hemos aprendido por cuenta propia o con tutoriales gratuitos de Internet.', weight: 1 },
+                { text: 'Sí, hemos tomado cursos o talleres organizados (pagados o con certificación).', weight: 2 }
+            ]
+        },
+        {
+            // ➕ NUEVA v2: Plan de desarrollo de habilidades (derivada de P3.1 original)
+            dimensionId: d3.id, text: '¿Tiene su negocio un plan para seguir desarrollando las habilidades digitales de su equipo?',
+            options: [
+                { text: 'No, no hemos pensado en eso.', weight: 0 },
+                { text: 'Tenemos la intención de capacitarnos, pero no hay un plan o presupuesto definido.', weight: 1 },
+                { text: 'Tenemos un plan con temas, fechas y presupuesto asignado para capacitaciones periódicas.', weight: 2 }
             ]
         },
         {
@@ -126,33 +143,58 @@ async function main() {
             ]
         },
 
-        // --- Dimensión 4: Estrategia y transformación digital ---
+        // ═══════════════════════════════════════════════════════════════
+        // Dimensión 4: Estrategia y transformación digital (5 preguntas — +2 nuevas)
+        // ═══════════════════════════════════════════════════════════════
         {
-            dimensionId: d4.id, text: '¿Existe un plan definido para aprovechar las tecnologías digitales en su empresa?',
+            // 🔄 REFORMULADA v2: Se añadió explicación entre paréntesis
+            dimensionId: d4.id, text: '¿Tiene su negocio un plan para incorporar o mejorar el uso de tecnología? (Por ejemplo: qué herramientas implementar, en qué orden, cuánto invertir y para cuándo)',
             options: [
-                { text: 'No tenemos un plan; implementamos cosas a medida que surgen emergencias.', weight: 0 },
-                { text: 'Tenemos ideas aisladas de lo que queremos lograr (ej. vender más por redes).', weight: 1 },
-                { text: 'Tenemos un plan estratégico con presupuesto e hitos de implementación tecnológica.', weight: 2 }
+                { text: 'No, vamos resolviendo las necesidades tecnológicas conforme aparecen.', weight: 0 },
+                { text: 'Tenemos algunas ideas de lo que queremos lograr con tecnología, pero sin fechas ni presupuesto definido.', weight: 1 },
+                { text: 'Tenemos un plan escrito con objetivos claros, herramientas a implementar, presupuesto asignado y fechas de ejecución.', weight: 2 }
             ]
         },
         {
-            dimensionId: d4.id, text: '¿Utiliza modelos de Inteligencia Artificial (ChatGPT, Gemini, etc.) estratégicamente?',
+            // ➕ NUEVA v2: Liderazgo y gobernanza digital
+            dimensionId: d4.id, text: '¿Quién toma las decisiones sobre tecnología en su negocio y cómo se implementan los cambios?',
             options: [
-                { text: 'No conozco o no utilizo herramientas de IA.', weight: 0 },
-                { text: 'Las uso esporádicamente para redactar textos o buscar ideas.', weight: 1 },
-                { text: 'La IA está integrada en procesos clave (creación, análisis, innovación).', weight: 2 }
+                { text: 'Nadie en particular; los cambios tecnológicos se hacen solo cuando es urgente.', weight: 0 },
+                { text: 'El dueño o gerente decide, pero no hay un proceso claro para implementar los cambios.', weight: 1 },
+                { text: 'Hay una persona o equipo responsable de evaluar, planificar e implementar mejoras tecnológicas.', weight: 2 }
             ]
         },
         {
-            dimensionId: d4.id, text: '¿Qué medidas de ciberseguridad aplica en su negocio?',
+            // 🔄 REFORMULADA v2: Enfocada en uso productivo concreto de IA
+            dimensionId: d4.id, text: '¿Utiliza herramientas de Inteligencia Artificial (como ChatGPT, Gemini, Copilot) para actividades productivas de su negocio?',
             options: [
-                { text: 'Ninguna, no usamos contraseñas seguras ni antivirus.', weight: 0 },
-                { text: 'Usamos antivirus básico y respaldos manuales en USB de vez en cuando.', weight: 1 },
-                { text: 'Políticas estrictas de contraseñas, respaldos automáticos en la nube y protección de datos.', weight: 2 }
+                { text: 'No las conozco o no las he utilizado para mi negocio.', weight: 0 },
+                { text: 'Las uso de vez en cuando para tareas puntuales (redactar textos, generar ideas, crear imágenes).', weight: 1 },
+                { text: 'Las uso regularmente como parte de mis procesos del negocio (análisis de datos, atención al cliente, creación de contenido, automatización).', weight: 2 }
+            ]
+        },
+        {
+            // 🔄 REFORMULADA v2: Lenguaje cotidiano para ciberseguridad
+            dimensionId: d4.id, text: '¿Qué hace su negocio para protegerse de ataques informáticos, virus o pérdida de información?',
+            options: [
+                { text: 'Nada en especial; no usamos contraseñas seguras ni programas de protección.', weight: 0 },
+                { text: 'Usamos antivirus y de vez en cuando hacemos copias de nuestros archivos importantes.', weight: 1 },
+                { text: 'Usamos contraseñas seguras, copias automáticas en la nube y mantenemos el software actualizado.', weight: 2 }
+            ]
+        },
+        {
+            // ➕ NUEVA v2: Protección de Datos Personales (PDP)
+            dimensionId: d4.id, text: '¿Cómo maneja su negocio la información personal de sus clientes (nombres, correos, direcciones, compras)?',
+            options: [
+                { text: 'No tenemos un manejo especial; guardamos los datos sin reglas claras.', weight: 0 },
+                { text: 'Tenemos cuidado con los datos, pero no hay una política escrita ni reglas formales.', weight: 1 },
+                { text: 'Tenemos reglas claras sobre qué datos recopilamos, cómo los protegemos, y pedimos autorización a los clientes para usarlos.', weight: 2 }
             ]
         },
 
-        // --- Dimensión 5: Datos y analítica ---
+        // ═══════════════════════════════════════════════════════════════
+        // Dimensión 5: Datos y analítica (3 preguntas)
+        // ═══════════════════════════════════════════════════════════════
         {
             dimensionId: d5.id, text: '¿Cómo maneja actualmente la base de datos de sus clientes?',
             options: [
@@ -178,7 +220,9 @@ async function main() {
             ]
         },
 
-        // --- Dimensión 6: Procesos ---
+        // ═══════════════════════════════════════════════════════════════
+        // Dimensión 6: Procesos (3 preguntas)
+        // ═══════════════════════════════════════════════════════════════
         {
             dimensionId: d6.id, text: '¿Cómo controla el inventario de productos o la agenda de servicios?',
             options: [
@@ -205,7 +249,7 @@ async function main() {
         }
     ]
 
-    console.log('Insertando 18 preguntas y 54 opciones...')
+    console.log(`Insertando ${seedData.length} preguntas y ${seedData.length * 3} opciones...`)
 
     // Inserción secuencial para asegurar que en la UI mantengan este mismo orden de inserción visual
     for (const item of seedData) {
@@ -222,7 +266,7 @@ async function main() {
         })
     }
 
-    console.log('✅ Matriz de 18 preguntas oficiales insertadas correctamente con sus pesos (0-2).')
+    console.log(`✅ Cuestionario v2.0: ${seedData.length} preguntas oficiales insertadas correctamente con sus pesos (0-2).`)
     console.log('🏁 Sembrado completado.')
 }
 

@@ -15,6 +15,9 @@ interface MaturityChartProps {
 export function MaturityChart({ data }: MaturityChartProps) {
     if (!data || data.length === 0) return <div className="text-center p-4 text-slate-400">Faltan datos para la gráfica.</div>
 
+    // Calcular dominio dinámico basado en el máximo fullMark (v2: dimensiones tienen 3, 4 o 5 preguntas)
+    const maxFullMark = Math.max(...data.map(d => d.fullMark))
+
     return (
         <div className="w-full h-[400px] sm:h-[500px] bg-transparent relative overflow-hidden group flex flex-col items-center justify-center">
             {/* Ambient Glow detrás de la gráfica en tonos esmeralda oscuros */}
@@ -47,13 +50,13 @@ export function MaturityChart({ data }: MaturityChartProps) {
                             tick={{ fill: "#cbd5e1" }}
                         />
 
-                        {/* Los aros numéricos o ejes del radio (0 a 6) */}
+                        {/* Los aros numéricos o ejes del radio (dinámico según v2) */}
                         <PolarRadiusAxis
                             angle={30}
-                            domain={[0, 6]}
+                            domain={[0, maxFullMark]}
                             tick={{ fill: "#64748b", fontSize: 10, fontWeight: 600 }}
                             axisLine={false}
-                            tickCount={7}
+                            tickCount={maxFullMark + 1}
                         />
 
                         {/* Forma Hexagonal Principal del puntaje de la compañía */}

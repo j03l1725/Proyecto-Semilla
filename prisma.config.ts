@@ -7,6 +7,7 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    seed: 'ts-node --compiler-options {"module":"CommonJS"} prisma/seed.ts',
   },
   datasource: {
     // Usamos DIRECT_URL para poder migrar sin problemas con el pooler (pgbouncer)

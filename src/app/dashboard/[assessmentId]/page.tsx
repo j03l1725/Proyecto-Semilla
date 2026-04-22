@@ -31,21 +31,25 @@ export default async function AssessmentResultPage({ params }: { params: Promise
         notFound()
     }
 
-    // Calcular puntaje por dimensión
-    const dimensionScores = assessment.answers.reduce((acc, answer) => {
+    // Calcular puntaje y conteo por dimensión
+    const dimensionData = assessment.answers.reduce((acc, answer) => {
         const dimName = answer.question.dimension.name;
         if (!acc[dimName]) {
-            acc[dimName] = 0;
+            acc[dimName] = { score: 0, questionCount: 0 };
         }
-        acc[dimName] += answer.option.weight;
+        acc[dimName].score += answer.option.weight;
+        acc[dimName].questionCount += 1;
         return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<string, { score: number; questionCount: number }>);
 
-    // Formatear para re-charts
-    const chartData = Object.keys(dimensionScores).map(key => ({
+    // Puntaje máximo total (21 preguntas × 2 puntos)
+    const maxTotalScore = assessment.answers.length * 2;
+
+    // Formatear para re-charts con fullMark dinámico por dimensión
+    const chartData = Object.keys(dimensionData).map(key => ({
         subject: key,
-        A: dimensionScores[key],
-        fullMark: 6 // 3 questions per dimension, max 2 pts each
+        A: dimensionData[key].score,
+        fullMark: dimensionData[key].questionCount * 2 // Dinámico: Qᵢ × 2
     }));
 
     // Define colores según el nivel de madurez para el Badge pero en Dark Theme
@@ -124,7 +128,7 @@ export default async function AssessmentResultPage({ params }: { params: Promise
                                     <span className="text-7xl font-black tracking-tighter text-white drop-shadow-md">
                                         {assessment.totalScore}
                                     </span>
-                                    <span className="text-xl font-bold text-slate-500 ml-1">/36</span>
+                                    <span className="text-xl font-bold text-slate-500 ml-1">/{maxTotalScore}</span>
                                 </div>
                             </div>
 
