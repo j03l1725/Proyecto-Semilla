@@ -45,12 +45,17 @@ export default async function AssessmentResultPage({ params }: { params: Promise
     // Puntaje máximo total (21 preguntas × 2 puntos)
     const maxTotalScore = assessment.answers.length * 2;
 
-    // Formatear para re-charts con fullMark dinámico por dimensión
-    const chartData = Object.keys(dimensionData).map(key => ({
-        subject: key,
-        A: dimensionData[key].score,
-        fullMark: dimensionData[key].questionCount * 2 // Dinámico: Qᵢ × 2
-    }));
+    // Formatear para re-charts: normalizar a porcentaje (Nᵢ = Sᵢ/(Qᵢ×2) × 100)
+    // Esto permite que todas las dimensiones sean comparables en el radar (0-100%)
+    const chartData = Object.keys(dimensionData).map(key => {
+        const maxDimScore = dimensionData[key].questionCount * 2
+        const normalized = maxDimScore > 0 ? Math.round((dimensionData[key].score / maxDimScore) * 100) : 0
+        return {
+            subject: key,
+            A: normalized,
+            fullMark: 100
+        }
+    });
 
     // Define colores según el nivel de madurez para el Badge pero en Dark Theme
     const getLevelBadgeStyles = (level: string | null) => {

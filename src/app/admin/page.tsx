@@ -175,18 +175,19 @@ export default async function AdminDashboardPage() {
                                     <TableHead className="font-semibold text-slate-700">Evaluación</TableHead>
                                     <TableHead className="font-semibold text-slate-700">Madurez</TableHead>
                                     <TableHead className="font-semibold text-slate-700 text-right">Puntaje</TableHead>
+                                    <TableHead className="font-semibold text-slate-700 text-center">Detalle</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {allAssessments.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center text-slate-500 py-8">
+                                        <TableCell colSpan={7} className="text-center text-slate-500 py-8">
                                             Aún no hay diagnósticos registrados.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     allAssessments.map((record) => (
-                                        <TableRow key={record.id} className="hover:bg-slate-50/50">
+                                        <TableRow key={record.id} className="hover:bg-blue-50/50 cursor-pointer transition-colors">
                                             <TableCell className="font-medium text-slate-900">{record.company.name}</TableCell>
                                             <TableCell className="text-slate-600">{record.company.contactName || 'N/A'}</TableCell>
                                             <TableCell className="text-slate-600 truncate max-w-[150px]">{record.company.sector || 'N/A'}</TableCell>
@@ -204,6 +205,13 @@ export default async function AdminDashboardPage() {
                                                 </span>
                                             </TableCell>
                                             <TableCell className="text-right font-bold text-slate-700">{record.totalScore}</TableCell>
+                                            <TableCell className="text-center">
+                                                <Link href={`/admin/${record.id}`}>
+                                                    <Button variant="outline" size="sm" className="text-blue-600 hover:bg-blue-50 hover:text-blue-700 border-blue-200">
+                                                        Ver
+                                                    </Button>
+                                                </Link>
+                                            </TableCell>
                                         </TableRow>
                                     ))
                                 )}

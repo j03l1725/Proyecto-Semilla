@@ -187,7 +187,7 @@ export const AssessmentReport = ({
                     {dimensionScores.map((dim, idx) => (
                         <View key={idx} style={styles.dimensionItem}>
                             <Text style={styles.label}>{dim.subject}</Text>
-                            <Text style={styles.value}>{dim.A} pts</Text>
+                            <Text style={styles.value}>{dim.A}%</Text>
                         </View>
                     ))}
                 </View>

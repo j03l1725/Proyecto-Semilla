@@ -15,9 +15,6 @@ interface MaturityChartProps {
 export function MaturityChart({ data }: MaturityChartProps) {
     if (!data || data.length === 0) return <div className="text-center p-4 text-slate-400">Faltan datos para la gráfica.</div>
 
-    // Calcular dominio dinámico basado en el máximo fullMark (v2: dimensiones tienen 3, 4 o 5 preguntas)
-    const maxFullMark = Math.max(...data.map(d => d.fullMark))
-
     return (
         <div className="w-full h-[400px] sm:h-[500px] bg-transparent relative overflow-hidden group flex flex-col items-center justify-center">
             {/* Ambient Glow detrás de la gráfica en tonos esmeralda oscuros */}
@@ -40,30 +37,35 @@ export function MaturityChart({ data }: MaturityChartProps) {
                             </filter>
                         </defs>
 
-                        {/* Malla Polar optimizada para fondo negro: oscura y punteada */}
-                        <PolarGrid stroke="#1e293b" strokeDasharray="3 4" />
+                        {/* Malla Polar con líneas radiales visibles (spokes del hexágono) */}
+                        <PolarGrid
+                            stroke="#1e293b"
+                            strokeDasharray="3 4"
+                            gridType="polygon"
+                        />
 
                         {/* Categorías (Dimensiones) con un text color que se lea sobre oscuro */}
                         <PolarAngleAxis
                             dataKey="subject"
                             className="text-[10px] sm:text-[11px] font-bold fill-slate-300 uppercase tracking-widest"
-                            tick={{ fill: "#cbd5e1" }}
+                            tick={{ fill: "#cbd5e1", fontSize: 10 }}
                         />
 
-                        {/* Los aros numéricos o ejes del radio (dinámico según v2) */}
+                        {/* Ejes del radio: escala 0% a 100% normalizada */}
                         <PolarRadiusAxis
-                            angle={30}
-                            domain={[0, maxFullMark]}
+                            angle={90}
+                            domain={[0, 100]}
                             tick={{ fill: "#64748b", fontSize: 10, fontWeight: 600 }}
                             axisLine={false}
-                            tickCount={maxFullMark + 1}
+                            tickCount={6}
+                            tickFormatter={(value: number) => `${value}%`}
                         />
 
                         {/* Forma Hexagonal Principal del puntaje de la compañía */}
                         <Radar
-                            name="Puntaje Obtenido"
+                            name="Puntaje"
                             dataKey="A"
-                            stroke="#10b981" // emarald-500 core line
+                            stroke="#10b981" // emerald-500 core line
                             strokeWidth={3}
                             fill="url(#neonGradient)"
                             fillOpacity={1}
@@ -71,17 +73,18 @@ export function MaturityChart({ data }: MaturityChartProps) {
                         />
 
                         <Tooltip
-                            cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} // cursor overlay opacity si pasas mouse
+                            cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
                             contentStyle={{
-                                backgroundColor: 'rgba(10, 15, 13, 0.95)', // Muy oscuro 0a0f0d
+                                backgroundColor: 'rgba(10, 15, 13, 0.95)',
                                 borderRadius: '12px',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
                                 boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(52, 211, 153, 0.1)',
                                 padding: '12px 16px',
-                                color: '#f8fafc' // slate-50
+                                color: '#f8fafc'
                             }}
                             itemStyle={{ color: '#34d399', fontWeight: 800, fontSize: '1.1rem' }}
                             labelStyle={{ color: '#94a3b8', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}
+                            formatter={(value: number | undefined) => [`${value ?? 0}%`, 'Puntaje']}
                         />
                     </RadarChart>
                 </ResponsiveContainer>
