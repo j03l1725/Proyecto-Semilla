@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import prisma from '@/lib/prisma'
+import { computeAssessmentResult, DIMENSION_ORDER } from '@/lib/scoring'
 
 export async function GET(request: NextRequest) {
     // Validación de seguridad manual en el endpoint
@@ -13,6 +14,12 @@ export async function GET(request: NextRequest) {
         const assessments = await prisma.assessment.findMany({
             include: {
                 company: true,
+                answers: {
+                    include: {
+                        option: true,
+                        question: { include: { dimension: true } },
+                    },
+                },
             },
             orderBy: {
                 createdAt: 'desc',
@@ -23,7 +30,7 @@ export async function GET(request: NextRequest) {
             return new NextResponse('No hay datos para exportar', { status: 404 })
         }
 
-        // Definir cabeceras del CSV
+        // Definir cabeceras del CSV (DIMENSION_ORDER fija el orden de columnas Nᵢ)
         const headers = [
             'ID Empresa',
             'Nombre Empresa',
@@ -31,8 +38,10 @@ export async function GET(request: NextRequest) {
             'Email / Login',
             'Sector Comercial',
             'Fecha Evaluación',
-            'Puntaje Total',
-            'Nivel de Madurez'
+            'Puntaje Bruto',
+            'DMI (%)',
+            'Nivel de Madurez',
+            ...DIMENSION_ORDER.map(d => `${d} (%)`),
         ].join(',')
 
         // Construir renglones escapando campos con posibles comas
@@ -46,6 +55,16 @@ export async function GET(request: NextRequest) {
                 return stringified
             }
 
+            // Recalcular el resultado con el modelo v3.0 para exportar DMI y Nᵢ
+            const result = computeAssessmentResult(
+                a.answers.map(ans => ({
+                    dimension: ans.question.dimension.name,
+                    weight: ans.option.weight,
+                }))
+            )
+            const byDim: Record<string, number> = {}
+            result.dimensions.forEach(d => { byDim[d.name] = d.normalized })
+
             return [
                 escapeCsv(a.company.id),
                 escapeCsv(a.company.name),
@@ -54,7 +73,9 @@ export async function GET(request: NextRequest) {
                 escapeCsv(a.company.sector),
                 escapeCsv(a.createdAt.toISOString()),
                 a.totalScore,
-                escapeCsv(a.level)
+                result.dmi,
+                escapeCsv(result.level),
+                ...DIMENSION_ORDER.map(d => byDim[d] ?? ''),
             ].join(',')
         })
 

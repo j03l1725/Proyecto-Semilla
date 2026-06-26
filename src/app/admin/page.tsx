@@ -2,11 +2,15 @@ import prisma from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LevelDistributionChart } from '@/components/charts/LevelDistributionChart'
 import { DimensionAvgChart } from '@/components/charts/DimensionAvgChart'
+import { computeAssessmentResult } from '@/lib/scoring'
 import { Users, BarChart3, TrendingUp, ShieldAlert, Download } from 'lucide-react'
 import { logoutAdmin } from '@/app/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Link from 'next/link'
+
+// Panel con datos en vivo: se renderiza en cada petición, nunca se prerenderiza.
+export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboardPage() {
     // 1. Obtención paralela de estadísticas agregadas desde la BD
@@ -35,35 +39,32 @@ export default async function AdminDashboardPage() {
         { name: 'Consolidado', value: consolidados },
     ]
 
-    // 2. Calcular los promedios globales por cada una de las 6 dimensiones
+    // 2. Promedio de madurez normalizada (Nᵢ, escala 0-100%) por dimensión.
+    // Se promedia la dimensión normalizada de cada evaluación para que todas
+    // las dimensiones sean comparables, sin importar su número de preguntas.
     const dimensionTotals: Record<string, { sum: number; count: number }> = {};
 
     allAssessments.forEach(ass => {
-        const localScores: Record<string, number> = {};
-
-        // Sumar puntajes de cada dimensión en la evaluación individual
-        ass.answers.forEach(ans => {
-            const dimName = ans.question.dimension.name;
-            if (!localScores[dimName]) localScores[dimName] = 0;
-            localScores[dimName] += ans.option.weight;
-        });
-
-        // Acumularlos en el mapeo global
-        Object.entries(localScores).forEach(([dim, score]) => {
-            if (!dimensionTotals[dim]) dimensionTotals[dim] = { sum: 0, count: 0 };
-            dimensionTotals[dim].sum += score;
-            dimensionTotals[dim].count += 1;
+        const res = computeAssessmentResult(
+            ass.answers.map(a => ({
+                dimension: a.question.dimension.name,
+                weight: a.option.weight,
+            }))
+        )
+        res.dimensions.forEach(d => {
+            if (!dimensionTotals[d.name]) dimensionTotals[d.name] = { sum: 0, count: 0 };
+            dimensionTotals[d.name].sum += d.normalized;
+            dimensionTotals[d.name].count += 1;
         });
     });
 
     // Formatear promedios para el Chart (Usamos verde Catalyst #10b981 base)
+    const colors = ['#10b981', '#34d399', '#059669', '#0d9488', '#0f766e', '#14b8a6'];
     const avgChartData = Object.keys(dimensionTotals).map((dim, i) => {
         const avg = dimensionTotals[dim].sum / dimensionTotals[dim].count;
-        // Graduar el color verde de Catalyst
-        const colors = ['#10b981', '#34d399', '#059669', '#0d9488', '#0f766e', '#14b8a6'];
         return {
             name: dim,
-            score: Number(avg.toFixed(2)),
+            score: Number(avg.toFixed(1)),
             color: colors[i % colors.length]
         };
     }).sort((a, b) => b.score - a.score); // Del mejor punteado al peor
@@ -151,7 +152,7 @@ export default async function AdminDashboardPage() {
 
                     <Card className="shadow-sm lg:col-span-2 border-slate-100 h-full">
                         <CardHeader>
-                            <CardTitle className="text-lg text-slate-800">Desempeño Promedio por Escenario (Max: 6 Pts)</CardTitle>
+                            <CardTitle className="text-lg text-slate-800">Madurez Promedio por Dimensión (escala 0-100%)</CardTitle>
                             <p className="text-xs text-slate-500 mt-1">Identifica el área estructural de madurez donde las Pymes del grupo fallan más a nivel nacional.</p>
                         </CardHeader>
                         <CardContent>

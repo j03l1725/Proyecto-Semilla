@@ -125,9 +125,9 @@ export default function AssessmentStepper() {
                 <div>
                     <div className="flex items-center space-x-3 mb-10 cursor-pointer" onClick={() => router.push('/')}>
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20">
-                            <span className="text-white font-extrabold text-xl">S</span>
+                            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="white"><path d="M12 2l8.66 5v10L12 22 3.34 17V7z" /></svg>
                         </div>
-                        <span className="text-2xl font-bold text-white tracking-tight">Semilla</span>
+                        <span className="text-2xl font-bold text-white tracking-tight">Madurez Digital</span>
                     </div>
 
                     <h2 className="text-2xl font-bold text-white tracking-tight mb-2">Construyendo tu perfil</h2>

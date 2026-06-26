@@ -1,4 +1,4 @@
-# Proyecto Semilla: Plataforma de Diagnóstico de Madurez Digital
+# Medición del Nivel de Madurez Digital en Emprendimientos
 
 Una plataforma web SaaS diseñada para evaluar y diagnosticar el estado tecnológico de pequeños y medianos emprendimientos, actuando como puente técnico entre la metodología académica y la realidad del usuario.
 

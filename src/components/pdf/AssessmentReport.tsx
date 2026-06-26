@@ -1,211 +1,229 @@
 import React from 'react'
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { RadarChartPdf } from './RadarChartPdf'
+import {
+    DIMENSION_LEVEL_LABEL,
+    type DimensionResult,
+    type MaturityLevel,
+} from '@/lib/scoring'
+import { GLOBAL_SUMMARY, getRecommendation } from '@/lib/recommendations'
 
-// Define the styles for the PDF
-const styles = StyleSheet.create({
-    page: {
-        padding: 30,
-        backgroundColor: '#ffffff',
-        fontFamily: 'Helvetica',
-    },
-    header: {
-        marginBottom: 30,
-        borderBottomWidth: 1,
-        borderBottomColor: '#2563eb',
-        paddingBottom: 10,
-    },
-    title: {
-        fontSize: 24,
-        color: '#0f172a',
-        fontWeight: 'bold',
-    },
-    subtitle: {
-        fontSize: 12,
-        color: '#64748b',
-        marginTop: 5,
-    },
-    section: {
-        marginBottom: 20,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        color: '#1e293b',
-        fontWeight: 'bold',
-        marginBottom: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e2e8f0',
-        paddingBottom: 5,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 5,
-    },
-    label: {
-        fontSize: 11,
-        color: '#475569',
-    },
-    value: {
-        fontSize: 11,
-        color: '#0f172a',
-        fontWeight: 'bold',
-    },
-    maturityBox: {
-        backgroundColor: '#f1f5f9',
-        padding: 15,
-        borderRadius: 5,
-        marginBottom: 20,
-        alignItems: 'center',
-    },
-    maturityLevel: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#2563eb', // Default blue, you can adjust dynamically if preferred
-        marginTop: 5,
-    },
-    dimensionItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f1f5f9',
-    },
-    recommendationBlock: {
-        marginTop: 30,
-        padding: 15,
-        backgroundColor: '#eff6ff',
-        borderRadius: 5,
-    },
-    recommendationTitle: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#1e40af',
-        marginBottom: 8,
-    },
-    recommendationText: {
-        fontSize: 10,
-        color: '#1e3a8a',
-        lineHeight: 1.5,
-    },
-    footer: {
-        position: 'absolute',
-        bottom: 30,
-        left: 30,
-        right: 30,
-        textAlign: 'center',
-        fontSize: 9,
-        color: '#94a3b8',
-        borderTopWidth: 1,
-        borderTopColor: '#e2e8f0',
-        paddingTop: 10,
-    }
-})
-
-interface DimensionScore {
-    subject: string;
-    A: number;
-    fullMark: number;
+/* ------------------------------------------------------------------ */
+/* Paleta por nivel de madurez                                         */
+/* ------------------------------------------------------------------ */
+const LEVEL_COLORS: Record<MaturityLevel, { text: string; bg: string }> = {
+    Incipiente: { text: '#dc2626', bg: '#fef2f2' },
+    'Transición': { text: '#d97706', bg: '#fffbeb' },
+    Consolidado: { text: '#059669', bg: '#ecfdf5' },
 }
 
-interface AssessmentReportProps {
-    companyName: string;
-    contactName?: string | null;
-    sector?: string | null;
-    totalScore: number;
-    level: string;
-    dimensionScores: DimensionScore[];
-    date: string;
+const styles = StyleSheet.create({
+    page: { padding: 34, paddingBottom: 56, backgroundColor: '#ffffff', fontFamily: 'Helvetica' },
+
+    header: { marginBottom: 18, borderBottomWidth: 2, borderBottomColor: '#059669', paddingBottom: 8 },
+    title: { fontSize: 20, color: '#0f172a', fontFamily: 'Helvetica-Bold' },
+    subtitle: { fontSize: 10, color: '#64748b', marginTop: 3 },
+
+    section: { marginBottom: 16 },
+    sectionTitle: {
+        fontSize: 12, color: '#1e293b', fontFamily: 'Helvetica-Bold', marginBottom: 8,
+        borderBottomWidth: 1, borderBottomColor: '#e2e8f0', paddingBottom: 4,
+    },
+
+    row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+    label: { fontSize: 9.5, color: '#475569' },
+    value: { fontSize: 9.5, color: '#0f172a', fontFamily: 'Helvetica-Bold' },
+
+    /* Bloque de resultado global */
+    globalBox: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
+        backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0',
+        borderRadius: 6, padding: 14, marginBottom: 16,
+    },
+    globalCol: { alignItems: 'center' },
+    globalCaption: { fontSize: 8, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 3 },
+    dmiValue: { fontSize: 30, color: '#047857', fontFamily: 'Helvetica-Bold' },
+    rawValue: { fontSize: 18, color: '#334155', fontFamily: 'Helvetica-Bold' },
+    levelBadge: { fontSize: 13, fontFamily: 'Helvetica-Bold', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 12 },
+
+    radarWrap: { alignItems: 'center', marginBottom: 4 },
+    caption: { fontSize: 8, color: '#94a3b8', textAlign: 'center', marginBottom: 12 },
+
+    /* Tabla de dimensiones */
+    tHead: { flexDirection: 'row', backgroundColor: '#f1f5f9', paddingVertical: 5, paddingHorizontal: 6, borderRadius: 3 },
+    tRow: { flexDirection: 'row', paddingVertical: 6, paddingHorizontal: 6, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+    tHeadCell: { fontSize: 8, color: '#64748b', fontFamily: 'Helvetica-Bold', textTransform: 'uppercase' },
+    tCell: { fontSize: 9, color: '#334155' },
+    colDim: { width: '52%' },
+    colScore: { width: '18%', textAlign: 'center' },
+    colPct: { width: '14%', textAlign: 'center' },
+    colLevel: { width: '16%', textAlign: 'right' },
+    miniBadge: { fontSize: 7.5, fontFamily: 'Helvetica-Bold', paddingVertical: 2, paddingHorizontal: 5, borderRadius: 8 },
+
+    /* Recomendaciones */
+    summary: { fontSize: 9.5, color: '#334155', lineHeight: 1.5, marginBottom: 14 },
+    recItem: {
+        marginBottom: 10, padding: 10, backgroundColor: '#f8fafc',
+        borderRadius: 5, borderLeftWidth: 3, borderLeftColor: '#059669',
+    },
+    recHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+    recRank: { fontSize: 9, color: '#047857', fontFamily: 'Helvetica-Bold' },
+    recDim: { fontSize: 10, color: '#0f172a', fontFamily: 'Helvetica-Bold' },
+    recText: { fontSize: 9, color: '#334155', lineHeight: 1.5 },
+
+    footer: {
+        position: 'absolute', bottom: 26, left: 34, right: 34, textAlign: 'center',
+        fontSize: 8, color: '#94a3b8', borderTopWidth: 1, borderTopColor: '#e2e8f0', paddingTop: 8,
+    },
+})
+
+export interface AssessmentReportProps {
+    companyName: string
+    contactName?: string | null
+    sector?: string | null
+    date: string
+    /** DMI — Índice de Madurez Digital global 0-100. */
+    dmi: number
+    level: MaturityLevel
+    totalRawScore: number
+    maxRawScore: number
+    dimensions: DimensionResult[]
+    /** Dimensiones ordenadas por brecha descendente. */
+    priorities: DimensionResult[]
+}
+
+function LevelBadge({ level }: { level: MaturityLevel }) {
+    const c = LEVEL_COLORS[level]
+    return <Text style={[styles.levelBadge, { color: c.text, backgroundColor: c.bg }]}>{level}</Text>
 }
 
 export const AssessmentReport = ({
     companyName,
     contactName,
     sector,
-    totalScore,
+    date,
+    dmi,
     level,
-    dimensionScores,
-    date
-}: AssessmentReportProps) => {
+    totalRawScore,
+    maxRawScore,
+    dimensions,
+    priorities,
+}: AssessmentReportProps) => (
+    <Document>
+        {/* ---------------- Página 1: diagnóstico ---------------- */}
+        <Page size="A4" style={styles.page}>
+            <View style={styles.header}>
+                <Text style={styles.title}>Diagnóstico de Madurez Digital</Text>
+                <Text style={styles.subtitle}>Reporte de evaluación de madurez digital</Text>
+            </View>
 
-    const getRecommendations = (lvl: string) => {
-        switch (lvl) {
-            case 'Incipiente':
-                return 'Tu negocio está en las primeras etapas de digitalización. Prioriza la adopción de herramientas básicas como un CRM sencillo, medios de pago digitales y un sistema de control de ventas estructurado para mejorar la eficiencia inicial.';
-            case 'Transición':
-                return 'Tienes una base digital establecida. El siguiente paso es integrar y automatizar tus herramientas. Considera implementar IA para atención al cliente y herramientas de análisis de datos para entender mejor a tu público.';
-            case 'Consolidado':
-                return '¡Excelente trabajo! Operas con alta madurez digital. Mantén tu innovación activa explorando nuevas tecnologías, optimizando algoritmos predictivos y fortaleciendo tu ciberseguridad corporativa.';
-            default:
-                return 'Continúa explorando herramientas digitales para fortalecer el alcance y operación de tu emprendimiento.';
-        }
-    }
-
-    return (
-        <Document>
-            <Page size="A4" style={styles.page}>
-
-                {/* Header */}
-                <View style={styles.header}>
-                    <Text style={styles.title}>Diagnóstico de Madurez Digital</Text>
-                    <Text style={styles.subtitle}>Proyecto Semilla - Reporte Oficial</Text>
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Datos del emprendimiento</Text>
+                <View style={styles.row}>
+                    <Text style={styles.label}>Empresa</Text>
+                    <Text style={styles.value}>{companyName}</Text>
                 </View>
-
-                {/* Company Info */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Datos del Emprendimiento</Text>
+                {contactName ? (
                     <View style={styles.row}>
-                        <Text style={styles.label}>Empresa:</Text>
-                        <Text style={styles.value}>{companyName}</Text>
+                        <Text style={styles.label}>Contacto</Text>
+                        <Text style={styles.value}>{contactName}</Text>
                     </View>
-                    {contactName && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>Contacto:</Text>
-                            <Text style={styles.value}>{contactName}</Text>
-                        </View>
-                    )}
-                    {sector && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>Sector:</Text>
-                            <Text style={styles.value}>{sector}</Text>
-                        </View>
-                    )}
+                ) : null}
+                {sector ? (
                     <View style={styles.row}>
-                        <Text style={styles.label}>Fecha del Diagnóstico:</Text>
-                        <Text style={styles.value}>{date}</Text>
+                        <Text style={styles.label}>Sector</Text>
+                        <Text style={styles.value}>{sector}</Text>
                     </View>
+                ) : null}
+                <View style={styles.row}>
+                    <Text style={styles.label}>Fecha del diagnóstico</Text>
+                    <Text style={styles.value}>{date}</Text>
                 </View>
+            </View>
 
-                {/* Global Result */}
-                <View style={styles.maturityBox}>
-                    <Text style={styles.label}>Puntaje Global: {totalScore} pts</Text>
-                    <Text style={styles.maturityLevel}>Nivel {level}</Text>
+            <View style={styles.globalBox}>
+                <View style={styles.globalCol}>
+                    <Text style={styles.globalCaption}>Índice de Madurez (DMI)</Text>
+                    <Text style={styles.dmiValue}>{dmi.toFixed(1)}%</Text>
                 </View>
-
-                {/* Dimensions Score Breakdown */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Desglose por Dimensión</Text>
-                    {dimensionScores.map((dim, idx) => (
-                        <View key={idx} style={styles.dimensionItem}>
-                            <Text style={styles.label}>{dim.subject}</Text>
-                            <Text style={styles.value}>{dim.A}%</Text>
-                        </View>
-                    ))}
+                <View style={styles.globalCol}>
+                    <Text style={styles.globalCaption}>Nivel</Text>
+                    <LevelBadge level={level} />
                 </View>
-
-                {/* Recommendations */}
-                <View style={styles.recommendationBlock}>
-                    <Text style={styles.recommendationTitle}>Recomendación Personalizada</Text>
-                    <Text style={styles.recommendationText}>
-                        {getRecommendations(level)}
-                    </Text>
+                <View style={styles.globalCol}>
+                    <Text style={styles.globalCaption}>Puntaje bruto</Text>
+                    <Text style={styles.rawValue}>{totalRawScore}/{maxRawScore}</Text>
                 </View>
+            </View>
 
-                {/* Footer */}
-                <Text style={styles.footer} fixed>
-                    Este reporte fue generado automáticamente por la Plataforma del Proyecto Semilla el {date}.
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Mapa de capacidades digitales</Text>
+                <View style={styles.radarWrap}>
+                    <RadarChartPdf data={dimensions.map((d) => ({ name: d.name, normalized: d.normalized }))} />
+                </View>
+                <Text style={styles.caption}>
+                    Las 6 dimensiones en escala normalizada 0-100 %. Cuanto más cerca del borde, mayor madurez.
                 </Text>
+            </View>
 
-            </Page>
-        </Document>
-    )
-}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Desglose por dimensión</Text>
+                <View style={styles.tHead}>
+                    <Text style={[styles.tHeadCell, styles.colDim]}>Dimensión</Text>
+                    <Text style={[styles.tHeadCell, styles.colScore]}>Puntaje</Text>
+                    <Text style={[styles.tHeadCell, styles.colPct]}>Nivel %</Text>
+                    <Text style={[styles.tHeadCell, styles.colLevel]}>Madurez</Text>
+                </View>
+                {dimensions.map((d) => {
+                    const c = LEVEL_COLORS[d.level]
+                    return (
+                        <View key={d.name} style={styles.tRow}>
+                            <Text style={[styles.tCell, styles.colDim]}>{d.name}</Text>
+                            <Text style={[styles.tCell, styles.colScore]}>{d.rawScore}/{d.maxScore}</Text>
+                            <Text style={[styles.tCell, styles.colPct, { fontFamily: 'Helvetica-Bold' }]}>
+                                {d.normalized.toFixed(0)}%
+                            </Text>
+                            <Text style={[styles.tCell, styles.colLevel, { color: c.text, fontFamily: 'Helvetica-Bold' }]}>
+                                {DIMENSION_LEVEL_LABEL[d.level]}
+                            </Text>
+                        </View>
+                    )
+                })}
+            </View>
+
+            <Text style={styles.footer} fixed>
+                Reporte generado por la plataforma de diagnóstico · {date}
+            </Text>
+        </Page>
+
+        {/* ---------------- Página 2: recomendaciones ---------------- */}
+        <Page size="A4" style={styles.page}>
+            <View style={styles.header}>
+                <Text style={styles.title}>Recomendaciones priorizadas</Text>
+                <Text style={styles.subtitle}>
+                    Acciones ordenadas por brecha de desempeño (análisis importancia-desempeño)
+                </Text>
+            </View>
+
+            <Text style={styles.summary}>{GLOBAL_SUMMARY[level]}</Text>
+
+            {priorities.map((d, idx) => (
+                <View key={d.name} style={styles.recItem}>
+                    <View style={styles.recHeader}>
+                        <Text style={styles.recDim}>
+                            {idx + 1}. {d.name}
+                        </Text>
+                        <Text style={styles.recRank}>
+                            {idx < 3 ? 'Prioridad alta' : 'Prioridad media'} · {d.normalized.toFixed(0)}%
+                        </Text>
+                    </View>
+                    <Text style={styles.recText}>{getRecommendation(d.name, d.level)}</Text>
+                </View>
+            ))}
+
+            <Text style={styles.footer} fixed>
+                Reporte generado por la plataforma de diagnóstico · {date}
+            </Text>
+        </Page>
+    </Document>
+)

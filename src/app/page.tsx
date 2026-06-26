@@ -110,9 +110,9 @@ export default function Home() {
       {/* Nav Brand inside Left section */}
       <div className="absolute top-8 left-8 lg:left-16 z-50 flex items-center space-x-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20">
-          <span className="text-white font-extrabold text-xl">S</span>
+          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="white"><path d="M12 2l8.66 5v10L12 22 3.34 17V7z" /></svg>
         </div>
-        <span className="text-2xl font-bold tracking-tighter text-white">Semilla</span>
+        <span className="text-2xl font-bold tracking-tighter text-white">Madurez Digital</span>
       </div>
 
       {/* Lado izquierdo: Propuesta de valor Hero */}
@@ -133,7 +133,7 @@ export default function Home() {
           </h1>
 
           <p className="text-lg md:text-xl text-slate-400 font-light max-w-xl leading-relaxed mb-12">
-            Deja de adivinar el estado tecnológico de tu negocio. Semilla te brinda una brújula precisa evaluada en 6 dimensiones estructurales en menos de 5 minutos, directo a tu pantalla.
+            Deja de adivinar el estado tecnológico de tu negocio. Esta herramienta te brinda una brújula precisa evaluada en 6 dimensiones estructurales en menos de 5 minutos, directo a tu pantalla.
           </p>
 
           {/* Stats indicators */}

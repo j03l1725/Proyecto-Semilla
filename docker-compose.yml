@@ -1,0 +1,59 @@
+# Despliegue de Proyecto Semilla en el servidor Indoamérica (Coolify/Traefik).
+# La app se publica en https://semilla.indoamericatech.com a traves del proxy
+# Traefik existente (red externa "coolify", certresolver "letsencrypt").
+services:
+  semilla-db:
+    image: postgres:16-alpine
+    container_name: semilla-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: semilla
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: semilla
+    volumes:
+      - semilla-db-data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U semilla -d semilla"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  semilla-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: semilla-app:latest
+    container_name: semilla-app
+    restart: unless-stopped
+    depends_on:
+      semilla-db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://semilla:${DB_PASSWORD}@semilla-db:5432/semilla
+      DIRECT_URL: postgresql://semilla:${DB_PASSWORD}@semilla-db:5432/semilla
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    networks:
+      - internal
+      - coolify
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.routers.http-semilla.entryPoints=http
+      - traefik.http.routers.http-semilla.middlewares=redirect-to-https
+      - traefik.http.routers.http-semilla.rule=Host(`semilla.indoamericatech.com`)
+      - traefik.http.routers.https-semilla.entryPoints=https
+      - traefik.http.routers.https-semilla.rule=Host(`semilla.indoamericatech.com`)
+      - traefik.http.routers.https-semilla.tls=true
+      - traefik.http.routers.https-semilla.tls.certresolver=letsencrypt
+      - traefik.http.services.semilla.loadbalancer.server.port=3000
+
+networks:
+  internal:
+  coolify:
+    external: true
+
+volumes:
+  semilla-db-data:

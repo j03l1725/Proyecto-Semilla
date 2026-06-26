@@ -2,29 +2,12 @@
 
 import React, { useEffect, useState } from 'react'
 import { PDFDownloadLink } from '@react-pdf/renderer'
-import { AssessmentReport } from './AssessmentReport'
+import { AssessmentReport, type AssessmentReportProps } from './AssessmentReport'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Download } from 'lucide-react'
 
-// Reuse interfaces for typing consistency
-interface DimensionScore {
-    subject: string;
-    A: number;
-    fullMark: number;
-}
-
-interface DownloadReportProps {
-    companyName: string;
-    contactName?: string | null;
-    sector?: string | null;
-    totalScore: number;
-    level: string;
-    dimensionScores: DimensionScore[];
-    date: string;
-}
-
-export function DownloadReportButton(props: DownloadReportProps) {
-    // Manejamos un estado de hidratación para Next.js
+export function DownloadReportButton(props: AssessmentReportProps) {
+    // Estado de hidratación: @react-pdf solo funciona en el cliente.
     const [isClient, setIsClient] = useState(false)
 
     useEffect(() => {
@@ -32,12 +15,20 @@ export function DownloadReportButton(props: DownloadReportProps) {
         return () => clearTimeout(timer)
     }, [])
 
-    if (!isClient) return <Button variant="default" size="lg" disabled><Download className="mr-2 h-4 w-4" /> Generando Reporte...</Button>
+    if (!isClient) {
+        return (
+            <Button variant="default" size="lg" disabled>
+                <Download className="mr-2 h-4 w-4" /> Generando Reporte...
+            </Button>
+        )
+    }
+
+    const safeName = props.companyName.replace(/\s+/g, '_')
 
     return (
         <PDFDownloadLink
             document={<AssessmentReport {...props} />}
-            fileName={`Diagnostico_Madurez_Digital_${props.companyName.replace(/\s+/g, '_')}.pdf`}
+            fileName={`Diagnostico_Madurez_Digital_${safeName}.pdf`}
             className={buttonVariants({ variant: 'default', size: 'lg', className: 'w-full sm:w-auto font-semibold' })}
             style={{ textDecoration: 'none' }}
         >

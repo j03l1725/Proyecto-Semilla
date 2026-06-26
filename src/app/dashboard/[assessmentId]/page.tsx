@@ -5,7 +5,11 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { MaturityChart } from '@/components/charts/MaturityChart'
 import { DownloadReportButton } from '@/components/pdf/DownloadReportButton'
+import { computeAssessmentResult } from '@/lib/scoring'
 import { Medal, Building2, Calendar, FileText, ArrowRight } from 'lucide-react'
+
+// Resultado individual con datos en vivo: se renderiza en cada petición.
+export const dynamic = 'force-dynamic'
 
 export default async function AssessmentResultPage({ params }: { params: Promise<{ assessmentId: string }> }) {
     const { assessmentId } = await params;
@@ -31,31 +35,23 @@ export default async function AssessmentResultPage({ params }: { params: Promise
         notFound()
     }
 
-    // Calcular puntaje y conteo por dimensión
-    const dimensionData = assessment.answers.reduce((acc, answer) => {
-        const dimName = answer.question.dimension.name;
-        if (!acc[dimName]) {
-            acc[dimName] = { score: 0, questionCount: 0 };
-        }
-        acc[dimName].score += answer.option.weight;
-        acc[dimName].questionCount += 1;
-        return acc;
-    }, {} as Record<string, { score: number; questionCount: number }>);
+    // Calcular el resultado con el modelo v3.0 (indicador compuesto OCDE/JRC)
+    const result = computeAssessmentResult(
+        assessment.answers.map(a => ({
+            dimension: a.question.dimension.name,
+            weight: a.option.weight,
+        }))
+    )
 
-    // Puntaje máximo total (21 preguntas × 2 puntos)
+    // Puntaje bruto máximo (21 ítems × 2 puntos)
     const maxTotalScore = assessment.answers.length * 2;
 
-    // Formatear para re-charts: normalizar a porcentaje (Nᵢ = Sᵢ/(Qᵢ×2) × 100)
-    // Esto permite que todas las dimensiones sean comparables en el radar (0-100%)
-    const chartData = Object.keys(dimensionData).map(key => {
-        const maxDimScore = dimensionData[key].questionCount * 2
-        const normalized = maxDimScore > 0 ? Math.round((dimensionData[key].score / maxDimScore) * 100) : 0
-        return {
-            subject: key,
-            A: normalized,
-            fullMark: 100
-        }
-    });
+    // Datos para el radar web: dimensiones normalizadas 0-100%
+    const chartData = result.dimensions.map(d => ({
+        subject: d.name,
+        A: Math.round(d.normalized),
+        fullMark: 100,
+    }));
 
     // Define colores según el nivel de madurez para el Badge pero en Dark Theme
     const getLevelBadgeStyles = (level: string | null) => {
@@ -78,9 +74,9 @@ export default async function AssessmentResultPage({ params }: { params: Promise
             <div className="w-full max-w-5xl mb-6">
                 <Link href="/" className="inline-flex items-center space-x-3 cursor-pointer group">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20 group-hover:scale-105 transition-transform">
-                        <span className="text-white font-extrabold text-xl">S</span>
+                        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="white"><path d="M12 2l8.66 5v10L12 22 3.34 17V7z" /></svg>
                     </div>
-                    <span className="text-2xl font-bold tracking-tighter text-white">Semilla</span>
+                    <span className="text-2xl font-bold tracking-tighter text-white">Madurez Digital</span>
                 </Link>
             </div>
 
@@ -128,19 +124,20 @@ export default async function AssessmentResultPage({ params }: { params: Promise
                                 {/* Anillo decorativo rotatorio u opcional */}
                                 <div className="absolute inset-[-4px] rounded-full border border-green-500/20 border-t-green-500/50" />
 
-                                <span className="text-xs font-bold text-green-500 uppercase tracking-widest mb-1 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]">Tu Puntaje</span>
+                                <span className="text-xs font-bold text-green-500 uppercase tracking-widest mb-1 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]">Índice de Madurez</span>
                                 <div className="flex items-baseline mt-1">
-                                    <span className="text-7xl font-black tracking-tighter text-white drop-shadow-md">
-                                        {assessment.totalScore}
+                                    <span className="text-6xl font-black tracking-tighter text-white drop-shadow-md">
+                                        {result.dmi.toFixed(1)}
                                     </span>
-                                    <span className="text-xl font-bold text-slate-500 ml-1">/{maxTotalScore}</span>
+                                    <span className="text-xl font-bold text-slate-500 ml-1">%</span>
                                 </div>
+                                <span className="text-[11px] font-medium text-slate-500 mt-1">Puntaje bruto {assessment.totalScore}/{maxTotalScore}</span>
                             </div>
 
                             <div className="text-center space-y-3 w-full px-4">
                                 <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">Diagnóstico Cualitativo</p>
-                                <div className={`inline-flex items-center justify-center w-full py-4 px-4 rounded-2xl border font-bold text-lg tracking-wide ${getLevelBadgeStyles(assessment.level)}`}>
-                                    {assessment.level || 'Pendiente'}
+                                <div className={`inline-flex items-center justify-center w-full py-4 px-4 rounded-2xl border font-bold text-lg tracking-wide ${getLevelBadgeStyles(result.level)}`}>
+                                    {result.level}
                                 </div>
                             </div>
 
@@ -153,10 +150,13 @@ export default async function AssessmentResultPage({ params }: { params: Promise
                             companyName={assessment.company.name}
                             contactName={assessment.company.contactName}
                             sector={assessment.company.sector}
-                            totalScore={assessment.totalScore}
-                            level={assessment.level || 'Pendiente'}
-                            dimensionScores={chartData}
                             date={new Date(assessment.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            dmi={result.dmi}
+                            level={result.level}
+                            totalRawScore={result.totalRawScore}
+                            maxRawScore={maxTotalScore}
+                            dimensions={result.dimensions}
+                            priorities={result.priorities}
                         />
 
                         <Link href="/" passHref className="w-full">

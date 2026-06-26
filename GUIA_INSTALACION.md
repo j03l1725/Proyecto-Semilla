@@ -1,4 +1,4 @@
-# Guía de Instalación y Ejecución Local (Proyecto Semilla)
+# Guía de Instalación y Ejecución Local — Plataforma de Madurez Digital
 
 Sigue estos sencillos pasos para levantar el entorno de desarrollo de esta aplicación Next.js y Prisma en tu propia computadora.
 

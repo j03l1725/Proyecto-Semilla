@@ -22,10 +22,11 @@ export function DimensionAvgChart({ data }: DimensionAvgChartProps) {
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                     <XAxis
                         type="number"
-                        domain={[0, 6]} // Siempre sobre 6 porque cada dimension vale 6 (3 pregs x 2 pts max) 
+                        domain={[0, 100]} // Madurez normalizada 0-100%, comparable entre dimensiones
                         tick={{ fill: "#64748b", fontSize: 12 }}
                         axisLine={false}
                         tickLine={false}
+                        tickFormatter={(value: number) => `${value}%`}
                     />
                     <YAxis
                         dataKey="name"
@@ -45,7 +46,7 @@ export function DimensionAvgChart({ data }: DimensionAvgChartProps) {
                             fontSize: '14px',
                             fontWeight: 600
                         }}
-                        formatter={(value: any) => [`${Number(value).toFixed(1)} Pts`, 'Promedio']}
+                        formatter={(value: number | undefined) => [`${Number(value ?? 0).toFixed(1)}%`, 'Madurez promedio']}
                     />
                     <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={20}>
                         {data.map((entry, index) => (

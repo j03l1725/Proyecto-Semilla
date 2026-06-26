@@ -5,17 +5,11 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { MaturityChart } from '@/components/charts/MaturityChart'
 import { DownloadReportButton } from '@/components/pdf/DownloadReportButton'
+import { computeAssessmentResult } from '@/lib/scoring'
 import { ArrowLeft, Building2, User, Briefcase, Calendar, Award, FileBarChart, Phone, MapPin } from 'lucide-react'
 
-// Pesos oficiales del modelo v2.0
-const DIMENSION_WEIGHTS: Record<string, number> = {
-    'Tecnologías y habilidades digitales': 0.15,
-    'Comunicaciones y canales de venta': 0.10,
-    'Organización y personas': 0.15,
-    'Estrategia y transformación digital': 0.20,
-    'Datos y analítica': 0.20,
-    'Procesos': 0.20,
-}
+// Detalle con datos en vivo: se renderiza en cada petición.
+export const dynamic = 'force-dynamic'
 
 export default async function AdminAssessmentDetailPage({ params }: { params: Promise<{ assessmentId: string }> }) {
     const { assessmentId } = await params;
@@ -59,25 +53,20 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
 
     const maxTotalScore = assessment.answers.length * 2;
 
-    // Datos normalizados para el radar (0-100%)
-    const chartData = Object.keys(dimensionData).map(key => {
-        const maxDimScore = dimensionData[key].questionCount * 2
-        const normalized = maxDimScore > 0 ? Math.round((dimensionData[key].score / maxDimScore) * 100) : 0
-        return {
-            subject: key,
-            A: normalized,
-            fullMark: 100
-        }
-    });
+    // Resultado con el modelo v3.0 (indicador compuesto OCDE/JRC)
+    const result = computeAssessmentResult(
+        assessment.answers.map(a => ({
+            dimension: a.question.dimension.name,
+            weight: a.option.weight,
+        }))
+    )
 
-    // Calcular IMG
-    let img = 0
-    for (const [dimName, data] of Object.entries(dimensionData)) {
-        const weight = DIMENSION_WEIGHTS[dimName] || 0
-        const maxScore = data.questionCount * 2
-        const normalized = maxScore > 0 ? (data.score / maxScore) * 100 : 0
-        img += weight * normalized
-    }
+    // Datos normalizados para el radar (0-100%)
+    const chartData = result.dimensions.map(d => ({
+        subject: d.name,
+        A: Math.round(d.normalized),
+        fullMark: 100,
+    }));
 
     const getLevelStyles = (level: string | null) => {
         switch (level) {
@@ -152,10 +141,13 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
                         companyName={assessment.company.name}
                         contactName={assessment.company.contactName}
                         sector={assessment.company.sector}
-                        totalScore={assessment.totalScore}
-                        level={assessment.level || 'Pendiente'}
-                        dimensionScores={chartData}
                         date={new Date(assessment.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        dmi={result.dmi}
+                        level={result.level}
+                        totalRawScore={result.totalRawScore}
+                        maxRawScore={maxTotalScore}
+                        dimensions={result.dimensions}
+                        priorities={result.priorities}
                     />
                 </div>
 
@@ -170,8 +162,8 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
 
                     <Card className="border-slate-200">
                         <CardContent className="pt-6 text-center">
-                            <p className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Índice de Madurez (IMG)</p>
-                            <p className="text-4xl font-black text-slate-800">{img.toFixed(1)}<span className="text-lg text-slate-400 font-medium">%</span></p>
+                            <p className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Índice de Madurez (DMI)</p>
+                            <p className="text-4xl font-black text-slate-800">{result.dmi.toFixed(1)}<span className="text-lg text-slate-400 font-medium">%</span></p>
                         </CardContent>
                     </Card>
 
@@ -179,9 +171,9 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
                         <CardContent className="pt-6 text-center">
                             <p className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Nivel de Madurez</p>
                             <div className="mt-1">
-                                <span className={`inline-flex px-4 py-2 rounded-full text-lg font-bold border ${getLevelStyles(assessment.level)}`}>
+                                <span className={`inline-flex px-4 py-2 rounded-full text-lg font-bold border ${getLevelStyles(result.level)}`}>
                                     <Award className="w-5 h-5 mr-2" />
-                                    {assessment.level || 'Pendiente'}
+                                    {result.level}
                                 </span>
                             </div>
                         </CardContent>
@@ -218,7 +210,6 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
                                     if (!data) return null
                                     const maxScore = data.questionCount * 2
                                     const pct = maxScore > 0 ? Math.round((data.score / maxScore) * 100) : 0
-                                    const weight = DIMENSION_WEIGHTS[dimName] || 0
                                     const dimLevel = getDimLevelLabel(pct)
 
                                     return (
@@ -226,7 +217,6 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                                                 <h4 className="font-semibold text-slate-800 text-sm">{dimName}</h4>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-slate-400">Peso: {(weight * 100).toFixed(0)}%</span>
                                                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${dimLevel.color}`}>{dimLevel.label}</span>
                                                 </div>
                                             </div>

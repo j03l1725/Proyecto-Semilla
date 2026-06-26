@@ -13,6 +13,15 @@ const prisma = new PrismaClient({ adapter })
 async function main() {
     console.log('🌱 Iniciando el sembrado de datos (seed) con el Cuestionario v2.0 (21 preguntas)...')
 
+    // Idempotencia: si el catálogo ya existe, no purgamos ni re-sembramos.
+    // Purgar preguntas/opciones haría cascade sobre AssessmentAnswer y borraría
+    // las respuestas de evaluaciones ya realizadas en cada arranque del contenedor.
+    const dimensionesExistentes = await prisma.dimension.count()
+    if (dimensionesExistentes > 0) {
+        console.log(`✅ El catálogo ya está sembrado (${dimensionesExistentes} dimensiones). Se omite el seed.`)
+        return
+    }
+
     // 0. Limpiar datos antiguos para evitar duplicidad
     console.log('Purgando registros de catálogo anteriores...')
     await prisma.option.deleteMany({})
