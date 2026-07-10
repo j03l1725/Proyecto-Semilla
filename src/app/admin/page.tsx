@@ -58,7 +58,7 @@ export default async function AdminDashboardPage() {
         });
     });
 
-    // Formatear promedios para el Chart (Usamos verde Catalyst #10b981 base)
+    // Formatear promedios para el Chart (verde esmeralda #10b981 base)
     const colors = ['#10b981', '#34d399', '#059669', '#0d9488', '#0f766e', '#14b8a6'];
     const avgChartData = Object.keys(dimensionTotals).map((dim, i) => {
         const avg = dimensionTotals[dim].sum / dimensionTotals[dim].count;
