@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { ADMIN_COOKIE, verifySessionToken } from '@/lib/adminSession'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const isAdminPath = request.nextUrl.pathname.startsWith('/admin')
     const isLoginPage = request.nextUrl.pathname === '/admin/login'
 
     if (isAdminPath) {
-        const authCookie = request.cookies.get('admin_session')
-        const isAuthenticated = authCookie?.value === 'authenticated'
+        const authCookie = request.cookies.get(ADMIN_COOKIE)
+        const isAuthenticated = await verifySessionToken(authCookie?.value)
 
         // Si intenta acceder a /admin pero no está validado -> redirigir a login
         if (!isAuthenticated && !isLoginPage) {

@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import prisma from '@/lib/prisma'
 import { computeAssessmentResult, DIMENSION_ORDER } from '@/lib/scoring'
+import { ADMIN_COOKIE, verifySessionToken } from '@/lib/adminSession'
 
 export async function GET(request: NextRequest) {
-    // Validación de seguridad manual en el endpoint
-    const authCookie = request.cookies.get('admin_session')
-    if (authCookie?.value !== 'authenticated') {
+    // Validación de seguridad manual en el endpoint: el middleware solo cubre /admin
+    const authCookie = request.cookies.get(ADMIN_COOKIE)
+    if (!(await verifySessionToken(authCookie?.value))) {
         return new NextResponse('Unauthorized', { status: 401 })
     }
 
