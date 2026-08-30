@@ -19,8 +19,8 @@ Una plataforma web SaaS diseñada para evaluar y diagnosticar el estado tecnoló
 
 | Despliegue | Base de datos | Uso |
 |---|---|---|
-| `proyecto-semilla-5upp.vercel.app` | Supabase | ★ El enlace citado en el artículo del TICEC. Es el que ven los revisores |
-| `semilla.indoamericatech.com` | Postgres propio en el VPS | Despliegue institucional. Base independiente y vacía |
+| `semilla.indoamericatech.com` | Postgres propio en el VPS | ★ El enlace citado en el artículo del TICEC desde la versión final del 2026-08-30. Despliegue institucional |
+| `proyecto-semilla-5upp.vercel.app` | Supabase | Despliegue previo. Fue el enlace del artículo durante la revisión por pares; se mantiene en pie porque las versiones ya enviadas lo citan |
 
 No comparten datos: un diagnóstico creado en uno no existe en el otro. Ambos se
 despliegan solos con un `push` a `main` —Vercel por su integración con Git, el
@@ -37,8 +37,9 @@ VPS por `.github/workflows/deploy.yml`—.
 ### Mantener viva la base
 
 El plan gratuito de Supabase pausa el proyecto tras siete días sin actividad, y
-una vez pausado **solo se reactiva a mano** desde su panel. Mientras la URL esté
-citada en el artículo, un cron en el VPS llama cada seis horas a `/api/health`,
+una vez pausado **solo se reactiva a mano** desde su panel. La versión final del
+artículo ya no cita esta URL, pero sí lo hacen las versiones enviadas durante la
+revisión, así que un cron en el VPS llama cada seis horas a `/api/health`,
 que hace un `SELECT 1` y no devuelve ningún dato:
 
 ```

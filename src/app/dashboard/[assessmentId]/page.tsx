@@ -197,10 +197,7 @@ export default async function AssessmentResultPage({ params }: { params: Promise
             {/* Footer Notice Oscuro */}
             <div className="mt-16 text-center max-w-lg mx-auto relative z-10 pb-8">
                 <p className="text-sm text-slate-400 bg-[#131b17]/80 backdrop-blur-md py-3 px-6 rounded-full border border-white/5 shadow-xl">
-                    {/* Atribución al equipo desarrollador retirada mientras el artículo
-                        esté en revisión por pares a doble ciego. Se restituye cuando el
-                        comité acepte el envío 1591. */}
-                    Herramienta de referencia estratégica.
+                    Herramienta de referencia estratégica. Desarrollado por el equipo de <a href="https://insideebb.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 font-semibold hover:text-emerald-300 hover:underline transition-colors">INSIDEEBB</a>.
                 </p>
             </div>
         </div>
