@@ -26,6 +26,18 @@ No comparten datos: un diagnóstico creado en uno no existe en el otro. Ambos se
 despliegan solos con un `push` a `main` —Vercel por su integración con Git, el
 VPS por `.github/workflows/deploy.yml`—.
 
+▲▲ **El despliegue al VPS depende de que este repositorio sea público, y falla en
+silencio si vuelve a privado.** `deploy.sh` hace `git fetch` con el remoto en HTTPS
+y el servidor no tiene credenciales de GitHub: mientras el repositorio fue privado,
+el paso moría con `could not read Username for 'https://github.com'` y exit 128.
+Estuvo así del 2026-08-16 al 2026-08-30 sin que nadie lo notara —el sitio seguía en
+pie sirviendo el build viejo, que es justo lo que lo hace difícil de ver—. Si hay
+que volver a hacerlo privado, antes hay que darle credencial al servidor: una
+*deploy key* SSH de solo lectura y el remoto cambiado a `git@github.com:`.
+
+▸ **Cómo comprobar que un despliegue entró de verdad:** `gh run list --limit 1`, y
+contrastar `git log --oneline -1` en `~/semilla-app` del VPS contra `origin/main`.
+
 ### Variables de entorno
 
 | Variable | Obligatoria | Para qué |
