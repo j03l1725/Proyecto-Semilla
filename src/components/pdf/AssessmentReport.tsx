@@ -1,86 +1,34 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { Document, Page, Text, View, Image } from '@react-pdf/renderer'
 import { RadarChartPdf } from './RadarChartPdf'
+import { C, NIVEL, s } from './estilos'
 import {
     DIMENSION_LEVEL_LABEL,
+    classifyPriority,
     type DimensionResult,
     type MaturityLevel,
+    type Priority,
 } from '@/lib/scoring'
 import { GLOBAL_SUMMARY, getRecommendation } from '@/lib/recommendations'
+import {
+    ETIQUETA_COSTO,
+    ETIQUETA_ESFUERZO,
+    accionPara,
+    buscarItem,
+    type Accion,
+    type Plazo,
+} from '@/lib/acciones'
 
-/* ------------------------------------------------------------------ */
-/* Paleta por nivel de madurez                                         */
-/* ------------------------------------------------------------------ */
-const LEVEL_COLORS: Record<MaturityLevel, { text: string; bg: string }> = {
-    Incipiente: { text: '#dc2626', bg: '#fef2f2' },
-    'Transición': { text: '#d97706', bg: '#fffbeb' },
-    Consolidado: { text: '#059669', bg: '#ecfdf5' },
-}
-
-const styles = StyleSheet.create({
-    page: { padding: 34, paddingBottom: 56, backgroundColor: '#ffffff', fontFamily: 'Helvetica' },
-
-    header: { marginBottom: 18, borderBottomWidth: 2, borderBottomColor: '#059669', paddingBottom: 8 },
-    title: { fontSize: 20, color: '#0f172a', fontFamily: 'Helvetica-Bold' },
-    subtitle: { fontSize: 10, color: '#64748b', marginTop: 3 },
-
-    section: { marginBottom: 16 },
-    sectionTitle: {
-        fontSize: 12, color: '#1e293b', fontFamily: 'Helvetica-Bold', marginBottom: 8,
-        borderBottomWidth: 1, borderBottomColor: '#e2e8f0', paddingBottom: 4,
-    },
-
-    row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-    label: { fontSize: 9.5, color: '#475569' },
-    value: { fontSize: 9.5, color: '#0f172a', fontFamily: 'Helvetica-Bold' },
-
-    /* Bloque de resultado global */
-    globalBox: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
-        backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0',
-        borderRadius: 6, padding: 14, marginBottom: 16,
-    },
-    globalCol: { alignItems: 'center' },
-    globalCaption: { fontSize: 8, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 3 },
-    dmiValue: { fontSize: 30, color: '#047857', fontFamily: 'Helvetica-Bold' },
-    rawValue: { fontSize: 18, color: '#334155', fontFamily: 'Helvetica-Bold' },
-    levelBadge: { fontSize: 13, fontFamily: 'Helvetica-Bold', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 12 },
-
-    radarWrap: { alignItems: 'center', marginBottom: 4 },
-    caption: { fontSize: 8, color: '#94a3b8', textAlign: 'center', marginBottom: 12 },
-
-    /* Tabla de dimensiones */
-    tHead: { flexDirection: 'row', backgroundColor: '#f1f5f9', paddingVertical: 5, paddingHorizontal: 6, borderRadius: 3 },
-    tRow: { flexDirection: 'row', paddingVertical: 6, paddingHorizontal: 6, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
-    tHeadCell: { fontSize: 8, color: '#64748b', fontFamily: 'Helvetica-Bold', textTransform: 'uppercase' },
-    tCell: { fontSize: 9, color: '#334155' },
-    colDim: { width: '52%' },
-    colScore: { width: '18%', textAlign: 'center' },
-    colPct: { width: '14%', textAlign: 'center' },
-    colLevel: { width: '16%', textAlign: 'right' },
-    miniBadge: { fontSize: 7.5, fontFamily: 'Helvetica-Bold', paddingVertical: 2, paddingHorizontal: 5, borderRadius: 8 },
-
-    /* Recomendaciones */
-    summary: { fontSize: 9.5, color: '#334155', lineHeight: 1.5, marginBottom: 14 },
-    recItem: {
-        marginBottom: 10, padding: 10, backgroundColor: '#f8fafc',
-        borderRadius: 5, borderLeftWidth: 3, borderLeftColor: '#059669',
-    },
-    recHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-    recRank: { fontSize: 9, color: '#047857', fontFamily: 'Helvetica-Bold' },
-    recDim: { fontSize: 10, color: '#0f172a', fontFamily: 'Helvetica-Bold' },
-    recText: { fontSize: 9, color: '#334155', lineHeight: 1.5 },
-
-    footer: {
-        position: 'absolute', bottom: 26, left: 34, right: 34, textAlign: 'center',
-        fontSize: 8, color: '#94a3b8', borderTopWidth: 1, borderTopColor: '#e2e8f0', paddingTop: 8,
-    },
-})
+/* ══════════════════════════════════════════════════════════════════════ */
+/* Datos de entrada                                                       */
+/* ══════════════════════════════════════════════════════════════════════ */
 
 export interface AssessmentReportProps {
     companyName: string
     contactName?: string | null
     sector?: string | null
+    city?: string | null
+    province?: string | null
     date: string
     /** DMI — Índice de Madurez Digital global 0-100. */
     dmi: number
@@ -90,140 +38,588 @@ export interface AssessmentReportProps {
     dimensions: DimensionResult[]
     /** Dimensiones ordenadas por brecha descendente. */
     priorities: DimensionResult[]
+    /** Código verificable del reporte. */
+    reportCode: string
+    /** Dirección donde este mismo reporte se puede volver a consultar. */
+    verifyUrl: string
+    /**
+     * Rutas de los logotipos. En el navegador se sirven desde `public/`; el
+     * script de pruebas los pasa como rutas del sistema de archivos, porque en
+     * Node no hay origen desde el que resolver una ruta absoluta.
+     */
+    logoSrc?: string
+    wordmarkSrc?: string
 }
 
-function LevelBadge({ level }: { level: MaturityLevel }) {
-    const c = LEVEL_COLORS[level]
-    return <Text style={[styles.levelBadge, { color: c.text, backgroundColor: c.bg }]}>{level}</Text>
+const LOGO_POR_DEFECTO = '/indoamerica-membrete.png'
+const WORDMARK_POR_DEFECTO = '/insideebb-wordmark.png'
+
+const ETIQUETA_PRIORIDAD: Record<Priority, string> = {
+    alta: 'Prioridad alta',
+    media: 'Prioridad media',
+    mantener: 'Mantener',
 }
 
-export const AssessmentReport = ({
-    companyName,
-    contactName,
-    sector,
-    date,
-    dmi,
-    level,
-    totalRawScore,
-    maxRawScore,
-    dimensions,
-    priorities,
-}: AssessmentReportProps) => (
-    <Document>
-        {/* ---------------- Página 1: diagnóstico ---------------- */}
-        <Page size="A4" style={styles.page}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Diagnóstico de Madurez Digital</Text>
-                <Text style={styles.subtitle}>Reporte de evaluación de madurez digital</Text>
-            </View>
+const COLOR_PRIORIDAD: Record<Priority, string> = {
+    alta: C.naranja,
+    media: C.moradoMedio,
+    mantener: C.metadato,
+}
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Datos del emprendimiento</Text>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Empresa</Text>
-                    <Text style={styles.value}>{companyName}</Text>
-                </View>
-                {contactName ? (
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Contacto</Text>
-                        <Text style={styles.value}>{contactName}</Text>
-                    </View>
-                ) : null}
-                {sector ? (
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Sector</Text>
-                        <Text style={styles.value}>{sector}</Text>
-                    </View>
-                ) : null}
-                <View style={styles.row}>
-                    <Text style={styles.label}>Fecha del diagnóstico</Text>
-                    <Text style={styles.value}>{date}</Text>
-                </View>
-            </View>
+/* ══════════════════════════════════════════════════════════════════════ */
+/* Piezas reutilizables                                                   */
+/* ══════════════════════════════════════════════════════════════════════ */
 
-            <View style={styles.globalBox}>
-                <View style={styles.globalCol}>
-                    <Text style={styles.globalCaption}>Índice de Madurez (DMI)</Text>
-                    <Text style={styles.dmiValue}>{dmi.toFixed(1)}%</Text>
-                </View>
-                <View style={styles.globalCol}>
-                    <Text style={styles.globalCaption}>Nivel</Text>
-                    <LevelBadge level={level} />
-                </View>
-                <View style={styles.globalCol}>
-                    <Text style={styles.globalCaption}>Puntaje bruto</Text>
-                    <Text style={styles.rawValue}>{totalRawScore}/{maxRawScore}</Text>
-                </View>
-            </View>
-
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Mapa de capacidades digitales</Text>
-                <View style={styles.radarWrap}>
-                    <RadarChartPdf data={dimensions.map((d) => ({ name: d.name, normalized: d.normalized }))} />
-                </View>
-                <Text style={styles.caption}>
-                    Las 6 dimensiones en escala normalizada 0-100 %. Cuanto más cerca del borde, mayor madurez.
+function Membrete({ reportCode, date, logoSrc }: { reportCode: string; date: string; logoSrc: string }) {
+    return (
+        <View style={s.membrete} fixed>
+            <Image style={s.logo} src={logoSrc} />
+            <View style={s.membreteDer}>
+                <Text style={s.membreteProyecto}>PROYECTO SEMILLA · CONVOCATORIA 01/2026</Text>
+                <Text style={s.membreteMeta}>Diagnóstico de madurez digital de microemprendimientos</Text>
+                <Text style={s.membreteMeta}>
+                    Reporte {reportCode} · {date}
                 </Text>
             </View>
+        </View>
+    )
+}
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Desglose por dimensión</Text>
-                <View style={styles.tHead}>
-                    <Text style={[styles.tHeadCell, styles.colDim]}>Dimensión</Text>
-                    <Text style={[styles.tHeadCell, styles.colScore]}>Puntaje</Text>
-                    <Text style={[styles.tHeadCell, styles.colPct]}>Nivel %</Text>
-                    <Text style={[styles.tHeadCell, styles.colLevel]}>Madurez</Text>
+function Agua() {
+    return (
+        <Text style={s.agua} fixed>
+            PROYECTO SEMILLA
+        </Text>
+    )
+}
+
+function Pie({ verifyUrl, wordmarkSrc }: { verifyUrl: string; wordmarkSrc: string }) {
+    return (
+        <View style={s.pie} fixed>
+            <View style={s.pieIzq}>
+                <View>
+                    <Text style={s.pieTexto}>Universidad Indoamérica · Proyecto Semilla 01/2026</Text>
+                    <Text style={s.pieTexto}>Verifique este reporte en {verifyUrl}</Text>
                 </View>
-                {dimensions.map((d) => {
-                    const c = LEVEL_COLORS[d.level]
-                    return (
-                        <View key={d.name} style={styles.tRow}>
-                            <Text style={[styles.tCell, styles.colDim]}>{d.name}</Text>
-                            <Text style={[styles.tCell, styles.colScore]}>{d.rawScore}/{d.maxScore}</Text>
-                            <Text style={[styles.tCell, styles.colPct, { fontFamily: 'Helvetica-Bold' }]}>
+                <Image style={s.pieLogo} src={wordmarkSrc} />
+            </View>
+            <Text style={s.pieNum} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+        </View>
+    )
+}
+
+function Ficha({ etiqueta, valor }: { etiqueta: string; valor: string }) {
+    return (
+        <View style={s.fila}>
+            <Text style={s.fichaEtiqueta}>{etiqueta}</Text>
+            <Text style={s.fichaValor}>{valor}</Text>
+        </View>
+    )
+}
+
+function Vinneta({ children }: { children: React.ReactNode }) {
+    return (
+        <View style={s.vinneta}>
+            <Text style={s.vinnetaMarca}>·</Text>
+            <Text style={s.vinnetaTexto}>{children}</Text>
+        </View>
+    )
+}
+
+/** Barra de la escala 0-100 con los tres tramos y la posición del DMI marcada. */
+function Escala({ dmi }: { dmi: number }) {
+    const tramos: { nivel: MaturityLevel; ancho: string }[] = [
+        { nivel: 'Incipiente', ancho: '33.33%' },
+        { nivel: 'Transición', ancho: '33.33%' },
+        { nivel: 'Consolidado', ancho: '33.34%' },
+    ]
+    const posicion = Math.min(100, Math.max(0, dmi))
+    return (
+        <View style={s.escala}>
+            <View style={s.escalaBarra}>
+                {tramos.map((t) => (
+                    <View key={t.nivel} style={[s.escalaTramo, { width: t.ancho, backgroundColor: NIVEL[t.nivel].relleno }]} />
+                ))}
+            </View>
+            {/* Marca de posición: un filete oscuro sobre el punto exacto del DMI. */}
+            <View style={{ height: 5, marginTop: -9, marginBottom: 4 }}>
+                <View
+                    style={{
+                        position: 'absolute',
+                        left: `${posicion}%`,
+                        width: 1.8,
+                        height: 15,
+                        marginTop: -3,
+                        backgroundColor: C.tinta,
+                    }}
+                />
+            </View>
+            <View style={s.escalaLeyenda}>
+                <Text style={[s.escalaTexto, { width: '33.33%' }]}>Básico · 0-33</Text>
+                <Text style={[s.escalaTexto, { width: '33.33%' }]}>Intermedio · 34-66</Text>
+                <Text style={[s.escalaTexto, { width: '33.34%' }]}>Avanzado · 67-100</Text>
+            </View>
+        </View>
+    )
+}
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/* Acciones derivadas de las respuestas                                   */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+interface AccionResuelta extends Accion {
+    dimension: string
+    /** Nombre corto del ítem del que sale la acción. */
+    itemEtiqueta: string
+}
+
+/**
+ * Convierte las respuestas de una dimensión en acciones concretas: solo los
+ * ítems puntuados 0 o 1 generan acción, porque un ítem en 2 ya está en el techo
+ * de la escala. Si un ítem no aparece en el catálogo —una pregunta nueva sin
+ * acción escrita todavía— simplemente no aporta, y la dimensión cae en su texto
+ * general. Nunca se inventa un consejo.
+ */
+function accionesDe(d: DimensionResult): AccionResuelta[] {
+    const salida: (AccionResuelta & { peso: number })[] = []
+    for (const item of d.items) {
+        const cat = buscarItem(item.questionText)
+        if (!cat) continue
+        const accion = accionPara(cat, item.weight)
+        if (!accion) continue
+        salida.push({ ...accion, dimension: d.name, itemEtiqueta: cat.etiqueta, peso: item.weight })
+    }
+    // Primero lo que está en cero, y a igual puntaje, lo que cuesta menos.
+    const orden: Record<string, number> = { bajo: 0, medio: 1, alto: 2 }
+    return salida.sort((a, b) => a.peso - b.peso || orden[a.esfuerzo] - orden[b.esfuerzo])
+}
+
+/* ══════════════════════════════════════════════════════════════════════ */
+/* Documento                                                              */
+/* ══════════════════════════════════════════════════════════════════════ */
+
+export const AssessmentReport = (p: AssessmentReportProps) => {
+    const logoSrc = p.logoSrc ?? LOGO_POR_DEFECTO
+    const wordmarkSrc = p.wordmarkSrc ?? WORDMARK_POR_DEFECTO
+    const marco = { reportCode: p.reportCode, date: p.date, logoSrc }
+    const pie = { verifyUrl: p.verifyUrl, wordmarkSrc }
+
+    const mejor = [...p.dimensions].sort((a, b) => b.normalized - a.normalized)[0]
+    const peor = [...p.dimensions].sort((a, b) => a.normalized - b.normalized)[0]
+
+    /*
+     * El plan se acota a propósito. Generar una acción por cada ítem por debajo
+     * del máximo produce hasta veintiuna, y eso no es un plan: es una lista que
+     * nadie ejecuta. Se toman las tres dimensiones de mayor brecha —el cuadrante
+     * «concentrarse aquí» del análisis importancia-desempeño— y dentro de cada
+     * una, las tres respuestas más bajas. Como máximo nueve acciones.
+     */
+    const conBrecha = p.priorities.filter((d) => classifyPriority(d.gap) !== 'mantener')
+    const focos = (conBrecha.length > 0 ? conBrecha : p.priorities).slice(0, 3)
+    const grupos = focos.map((d) => ({ dimension: d, acciones: accionesDe(d).slice(0, 3) }))
+
+    // Las dimensiones que quedan fuera del foco, para no dejarlas sin mención.
+    const resto = p.dimensions.filter(
+        (d) => !focos.some((f) => f.name === d.name) && classifyPriority(d.gap) !== 'mantener'
+    )
+
+    // Hoja de ruta: todas las acciones repartidas por plazo, sin repetir título.
+    const todas = grupos.flatMap((g) => g.acciones)
+    const porPlazo = (plazo: Plazo) => {
+        const vistos = new Set<string>()
+        return todas
+            .filter((a) => a.plazo === plazo)
+            .filter((a) => (vistos.has(a.titulo) ? false : (vistos.add(a.titulo), true)))
+    }
+
+    return (
+        <Document
+            title={`Diagnóstico de Madurez Digital — ${p.companyName}`}
+            author="Universidad Indoamérica · Proyecto Semilla"
+            subject="Reporte de autodiagnóstico de madurez digital"
+            creator="Plataforma de Madurez Digital · Proyecto Semilla"
+        >
+            {/* ══════════════ Página 1 · Resultado ══════════════ */}
+            <Page size="A4" style={s.page}>
+                <Agua />
+                <Membrete {...marco} />
+
+                <View style={s.tituloBloque}>
+                    <Text style={s.titulo}>Diagnóstico de Madurez Digital</Text>
+                    <Text style={s.subtitulo}>
+                        Autodiagnóstico de 21 ítems en 6 dimensiones. Los criterios de cálculo y el alcance de este
+                        reporte se detallan en la última página.
+                    </Text>
+                </View>
+
+                <View style={s.seccion}>
+                    <Text style={s.seccionTitulo}>Datos del emprendimiento</Text>
+                    <Ficha etiqueta="Emprendimiento" valor={p.companyName} />
+                    {p.contactName ? <Ficha etiqueta="Persona de contacto" valor={p.contactName} /> : null}
+                    {p.sector ? <Ficha etiqueta="Sector" valor={p.sector} /> : null}
+                    {p.city || p.province ? (
+                        <Ficha etiqueta="Ubicación" valor={[p.city, p.province].filter(Boolean).join(', ')} />
+                    ) : null}
+                    <Ficha etiqueta="Fecha del diagnóstico" valor={p.date} />
+                </View>
+
+                <View style={s.cajaGlobal} wrap={false}>
+                    <View style={s.globalIzq}>
+                        <Text style={s.rotulo}>ÍNDICE DE MADUREZ DIGITAL</Text>
+                        <Text style={s.dmi}>{p.dmi.toFixed(1)}%</Text>
+                        <Text style={s.bruto}>
+                            Puntaje bruto {p.totalRawScore} de {p.maxRawScore}
+                        </Text>
+                    </View>
+                    <View style={s.globalDer}>
+                        <Text
+                            style={[
+                                s.insignia,
+                                { color: NIVEL[p.level].texto, backgroundColor: NIVEL[p.level].relleno },
+                            ]}
+                        >
+                            Nivel {p.level} · {NIVEL[p.level].etiqueta}
+                        </Text>
+                        <Text style={s.glosa}>{GLOBAL_SUMMARY[p.level]}</Text>
+                    </View>
+                </View>
+
+                <View style={s.seccion} wrap={false}>
+                    <Text style={s.seccionTitulo}>Posición en la escala</Text>
+                    <Escala dmi={p.dmi} />
+                </View>
+
+                <View style={s.seccion} wrap={false}>
+                    <Text style={s.seccionTitulo}>Perfil por dimensión</Text>
+                    <View style={{ alignItems: 'center' }}>
+                        <RadarChartPdf data={p.dimensions.map((d) => ({ name: d.name, normalized: d.normalized }))} />
+                    </View>
+                </View>
+
+                <Pie {...pie} />
+            </Page>
+
+            {/* ══════════════ Página 2 · Desglose ══════════════ */}
+            <Page size="A4" style={s.page}>
+                <Agua />
+                <Membrete {...marco} />
+
+                <View style={s.tituloBloque}>
+                    <Text style={s.titulo}>Desglose por dimensión</Text>
+                    <Text style={s.subtitulo}>
+                        Cada dimensión se normaliza a la escala 0-100 % para que sean comparables entre sí, aunque
+                        tengan distinto número de preguntas.
+                    </Text>
+                </View>
+
+                {/* La tabla no se parte: antes dejaba dos filas huérfanas en una página vacía. */}
+                <View style={s.seccion} wrap={false}>
+                    <View style={s.thead}>
+                        <Text style={[s.th, s.colDim]}>DIMENSIÓN</Text>
+                        <Text style={[s.th, s.colPunt]}>PUNTAJE</Text>
+                        <Text style={[s.th, s.colPct]}>NIVEL %</Text>
+                        <Text style={[s.th, s.colNivel]}>MADUREZ</Text>
+                    </View>
+                    {p.dimensions.map((d) => (
+                        <View key={d.name} style={s.tr}>
+                            <Text style={[s.td, s.colDim]}>{d.name}</Text>
+                            <Text style={[s.td, s.colPunt]}>
+                                {d.rawScore}/{d.maxScore}
+                            </Text>
+                            <Text style={[s.td, s.colPct, { fontFamily: 'Helvetica-Bold', color: C.tinta }]}>
                                 {d.normalized.toFixed(0)}%
                             </Text>
-                            <Text style={[styles.tCell, styles.colLevel, { color: c.text, fontFamily: 'Helvetica-Bold' }]}>
-                                {DIMENSION_LEVEL_LABEL[d.level]}
-                            </Text>
+                            <View style={s.colNivel}>
+                                <Text
+                                    style={[
+                                        s.chip,
+                                        { color: NIVEL[d.level].texto, backgroundColor: NIVEL[d.level].relleno },
+                                    ]}
+                                >
+                                    {DIMENSION_LEVEL_LABEL[d.level]}
+                                </Text>
+                            </View>
+                        </View>
+                    ))}
+                </View>
+
+                <View style={s.caja} wrap={false}>
+                    <Text style={s.cajaTitulo}>Cómo leer su perfil</Text>
+                    <Vinneta>
+                        <Text style={{ fontFamily: 'Helvetica-Bold' }}>Su punto más fuerte </Text>
+                        es {mejor.name.toLowerCase()}, con {mejor.normalized.toFixed(0)} %. Es la base sobre la que
+                        conviene apoyar los siguientes cambios.
+                    </Vinneta>
+                    <Vinneta>
+                        <Text style={{ fontFamily: 'Helvetica-Bold' }}>Su mayor brecha </Text>
+                        está en {peor.name.toLowerCase()}, con {peor.normalized.toFixed(0)} %. Ahí es donde una mejora
+                        pequeña mueve más su índice global.
+                    </Vinneta>
+                    <Vinneta>
+                        Un perfil parejo en el gráfico indica un negocio equilibrado; uno muy irregular indica que se
+                        invirtió mucho en unas áreas y se descuidaron otras, que es el caso más frecuente.
+                    </Vinneta>
+                    <Vinneta>
+                        Las seis dimensiones pesan lo mismo en el índice, así que un punto ganado en cualquiera de
+                        ellas vale igual.
+                    </Vinneta>
+                </View>
+
+                <Pie {...pie} />
+            </Page>
+
+            {/* ══════════════ Página 3 · Inventario de respuestas ══════════════ */}
+            <Page size="A4" style={s.page}>
+                <Agua />
+                <Membrete {...marco} />
+
+                <View style={s.tituloBloque}>
+                    <Text style={s.titulo}>Sus respuestas, ítem por ítem</Text>
+                    <Text style={s.subtitulo}>
+                        El detalle completo de lo que usted respondió, con el puntaje de cada ítem sobre 2. Sirve para
+                        verificar el resultado y para comparar cuando repita el diagnóstico.
+                    </Text>
+                </View>
+
+                {p.dimensions.map((d) => (
+                    <View key={d.name} wrap={false}>
+                        <Text style={s.invDim}>
+                            {d.name} — {d.rawScore}/{d.maxScore} · {d.normalized.toFixed(0)} %
+                        </Text>
+                        {d.items.map((it, i) => {
+                            const cat = buscarItem(it.questionText)
+                            return (
+                                <View key={i} style={s.invFila}>
+                                    <Text style={s.invItem}>{cat?.etiqueta ?? it.questionText.slice(0, 46)}</Text>
+                                    <Text style={s.invResp}>{it.optionText}</Text>
+                                    <Text
+                                        style={[
+                                            s.invPunt,
+                                            { color: it.weight === 2 ? C.morado : it.weight === 1 ? C.moradoMedio : C.naranja },
+                                        ]}
+                                    >
+                                        {it.weight}/2
+                                    </Text>
+                                </View>
+                            )
+                        })}
+                    </View>
+                ))}
+
+                <Pie {...pie} />
+            </Page>
+
+            {/* ══════════════ Página 4 · Plan de acción ══════════════ */}
+            <Page size="A4" style={s.page}>
+                <Agua />
+                <Membrete {...marco} />
+
+                <View style={s.tituloBloque}>
+                    <Text style={s.titulo}>Plan de acción priorizado</Text>
+                    <Text style={s.subtitulo}>
+                        {todas.length === 0
+                            ? 'Su emprendimiento no registra brechas en el instrumento.'
+                            : 'Se concentran aquí las tres dimensiones con mayor brecha, y dentro de cada una las tres respuestas más bajas. Es deliberado: un plan de nueve acciones se ejecuta, uno de veintiuna no. Cuando complete estas, repita el diagnóstico y el reporte le señalará las siguientes.'}
+                    </Text>
+                </View>
+
+                {todas.length === 0 ? null : grupos.map((g) => {
+                    const prioridad = classifyPriority(g.dimension.gap)
+                    return (
+                        <View key={g.dimension.name} style={s.grupo} wrap={false}>
+                            <View style={s.grupoCabecera}>
+                                <Text style={s.grupoTitulo}>{g.dimension.name}</Text>
+                                <Text style={[s.grupoMeta, { color: COLOR_PRIORIDAD[prioridad] }]}>
+                                    {ETIQUETA_PRIORIDAD[prioridad]} · {g.dimension.normalized.toFixed(0)} % · brecha{' '}
+                                    {g.dimension.gap.toFixed(0)} pts
+                                </Text>
+                            </View>
+
+                            {g.acciones.length === 0 ? (
+                                <View style={s.accion}>
+                                    <Text style={s.accionDetalle}>{getRecommendation(g.dimension.name, g.dimension.level)}</Text>
+                                </View>
+                            ) : (
+                                g.acciones.map((a, i) => (
+                                    <View key={i} style={s.accion}>
+                                        <Text style={s.accionTitulo}>
+                                            {a.itemEtiqueta} — {a.titulo}
+                                        </Text>
+                                        <Text style={s.accionDetalle}>{a.detalle}</Text>
+                                        <View style={s.accionPie}>
+                                            <Text style={s.etiqueta}>{ETIQUETA_ESFUERZO[a.esfuerzo]}</Text>
+                                            <Text style={s.etiqueta}>{ETIQUETA_COSTO[a.costo]}</Text>
+                                            <Text style={s.etiqueta}>Sugerido a {a.plazo} días</Text>
+                                            {a.herramientas.map((h) => (
+                                                <Text key={h} style={s.etiqueta}>
+                                                    {h}
+                                                </Text>
+                                            ))}
+                                        </View>
+                                    </View>
+                                ))
+                            )}
                         </View>
                     )
                 })}
-            </View>
 
-            <Text style={styles.footer} fixed>
-                Reporte generado por la plataforma de diagnóstico · {date}
-            </Text>
-        </Page>
+                {resto.length > 0 ? (
+                    <View style={s.caja} wrap={false}>
+                        <Text style={s.cajaTitulo}>Después de lo anterior</Text>
+                        {resto.map((d) => (
+                            <Vinneta key={d.name}>
+                                <Text style={{ fontFamily: 'Helvetica-Bold' }}>{d.name} ({d.normalized.toFixed(0)} %). </Text>
+                                {getRecommendation(d.name, d.level)}
+                            </Vinneta>
+                        ))}
+                    </View>
+                ) : null}
 
-        {/* ---------------- Página 2: recomendaciones ---------------- */}
-        <Page size="A4" style={styles.page}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Recomendaciones priorizadas</Text>
-                <Text style={styles.subtitle}>
-                    Acciones ordenadas por brecha de desempeño (análisis importancia-desempeño)
-                </Text>
-            </View>
-
-            <Text style={styles.summary}>{GLOBAL_SUMMARY[level]}</Text>
-
-            {priorities.map((d, idx) => (
-                <View key={d.name} style={styles.recItem}>
-                    <View style={styles.recHeader}>
-                        <Text style={styles.recDim}>
-                            {idx + 1}. {d.name}
-                        </Text>
-                        <Text style={styles.recRank}>
-                            {idx < 3 ? 'Prioridad alta' : 'Prioridad media'} · {d.normalized.toFixed(0)}%
+                {todas.length === 0 ? (
+                    <View style={s.caja}>
+                        <Text style={s.cajaTitulo}>Sin brechas pendientes</Text>
+                        <Text style={s.cajaTexto}>
+                            Su emprendimiento respondió en el nivel máximo en todos los ítems evaluados. El instrumento
+                            no distingue por encima de este punto: para seguir avanzando conviene un diagnóstico
+                            especializado por área, no un autodiagnóstico general.
                         </Text>
                     </View>
-                    <Text style={styles.recText}>{getRecommendation(d.name, d.level)}</Text>
-                </View>
-            ))}
+                ) : null}
 
-            <Text style={styles.footer} fixed>
-                Reporte generado por la plataforma de diagnóstico · {date}
-            </Text>
-        </Page>
-    </Document>
-)
+                {todas.length === 0 ? null : (
+                <View style={s.seccion} wrap={false}>
+                    <Text style={s.seccionTitulo}>Hoja de ruta sugerida</Text>
+                    <Text style={[s.parrafo, { marginBottom: 9 }]}>
+                        El mismo plan, repartido en el tiempo. El orden pone primero lo que cuesta menos y rinde antes.
+                    </Text>
+                    {([30, 60, 90] as Plazo[]).map((plazo) => {
+                        const lista = porPlazo(plazo)
+                        return (
+                            <View key={plazo} style={s.rutaFila} wrap={false}>
+                                <Text style={s.rutaHito}>{plazo} días</Text>
+                                <View style={s.rutaLista}>
+                                    {lista.length === 0 ? (
+                                        <Text style={[s.rutaItem, { color: C.metadato }]}>
+                                            Sin acciones pendientes en este tramo.
+                                        </Text>
+                                    ) : (
+                                        lista.map((a, i) => (
+                                            <Text key={i} style={s.rutaItem}>
+                                                · {a.titulo}
+                                            </Text>
+                                        ))
+                                    )}
+                                </View>
+                            </View>
+                        )
+                    })}
+                </View>
+                )}
+
+                <Pie {...pie} />
+            </Page>
+
+            {/* ══════════════ Página 5 · Criterios y alcance ══════════════ */}
+            <Page size="A4" style={s.page}>
+                <Agua />
+                <Membrete {...marco} />
+
+                <View style={s.tituloBloque}>
+                    <Text style={s.titulo}>Criterios, alcance y verificación</Text>
+                    <Text style={s.subtitulo}>
+                        Bajo qué reglas se calculó este diagnóstico, qué alcance tiene y cómo se recupera.
+                    </Text>
+                </View>
+
+                <View style={s.seccion} wrap={false}>
+                    <Text style={s.seccionTitulo}>Cómo se calculó su resultado</Text>
+                    <Text style={s.parrafo}>
+                        El índice se construye con el procedimiento canónico de indicadores compuestos del Handbook on
+                        Constructing Composite Indicators (OCDE y Centro Común de Investigación, 2008): normalización,
+                        ponderación y agregación lineal, en ese orden.
+                    </Text>
+                    <Text style={s.formula}>Ni = (puntaje obtenido / puntaje maximo) x 100</Text>
+                    <Text style={s.parrafo}>
+                        Cada dimensión se lleva a una escala de 0 a 100 dividiendo lo que usted obtuvo entre lo máximo
+                        posible en esa dimensión. Así una dimensión de 3 preguntas y otra de 5 se pueden comparar.
+                    </Text>
+                    <Text style={s.formula}>DMI = (N1 + N2 + N3 + N4 + N5 + N6) / 6</Text>
+                    <Text style={s.parrafo}>
+                        El índice global es el promedio simple de las seis. Las dimensiones pesan lo mismo a propósito:
+                        no existe evidencia publicada que justifique dar más peso a una que a otra en
+                        microemprendimientos, y unos pesos inventados harían el resultado imposible de comparar entre
+                        negocios.
+                    </Text>
+                    <Text style={s.formula}>Brecha = 100 - Ni</Text>
+                    <Text style={s.parrafo}>
+                        La prioridad de cada dimensión sale de su brecha, siguiendo el análisis importancia-desempeño
+                        de Martilla y James (1977). Los tres niveles dividen la escala en tres tramos iguales, según el
+                        escalonamiento por etapas habitual en los modelos de madurez (de Bruin y otros, 2005; Becker y
+                        otros, 2009). Las seis dimensiones y los veintiún ítems se derivan del Digital Maturity Model
+                        para pymes de Williams y otros (2024) y del Digital Maturity Assessment de la Comisión Europea,
+                        adaptados al contexto ecuatoriano.
+                    </Text>
+                </View>
+
+                <View style={s.caja} wrap={false}>
+                    <Text style={s.cajaTitulo}>Qué es y qué no es este reporte</Text>
+                    <Vinneta>
+                        Es un <Text style={{ fontFamily: 'Helvetica-Bold' }}>autodiagnóstico</Text>: se basa
+                        únicamente en lo que usted respondió. No se verificó en campo ni se auditaron sus sistemas.
+                    </Vinneta>
+                    <Vinneta>
+                        Es un <Text style={{ fontFamily: 'Helvetica-Bold' }}>punto de partida orientativo</Text>, no
+                        una consultoría ni una certificación. Las acciones sugeridas son prácticas generales para
+                        microemprendimientos; conviene contrastarlas con la realidad de su negocio antes de invertir.
+                    </Vinneta>
+                    <Vinneta>
+                        Las herramientas que se nombran son{' '}
+                        <Text style={{ fontFamily: 'Helvetica-Bold' }}>ejemplos disponibles en Ecuador</Text>, no
+                        recomendaciones comerciales. El proyecto no tiene relación con ninguno de esos proveedores ni
+                        recibe pago de ellos.
+                    </Vinneta>
+                    <Vinneta>
+                        El instrumento mide seis dimensiones con veintiún ítems. Es deliberadamente breve para que se
+                        pueda responder en pocos minutos, a cambio de menor detalle que un diagnóstico especializado.
+                    </Vinneta>
+                    <Vinneta>
+                        Puede repetir el diagnóstico más adelante para medir su avance. Cada aplicación genera un
+                        reporte con su propio código.
+                    </Vinneta>
+                </View>
+
+                <View style={s.caja} wrap={false}>
+                    <Text style={s.cajaTitulo}>Datos personales y uso investigativo</Text>
+                    <Text style={s.cajaTexto}>
+                        Sus respuestas forman parte de la muestra del proyecto de investigación &quot;Medición del nivel
+                        de madurez digital en microemprendimientos&quot; de la Universidad Indoamérica. Los resultados
+                        se analizan y publican de forma agregada y anónima: ni el nombre de su emprendimiento ni sus
+                        datos de contacto aparecen en ninguna publicación. Usted puede solicitar la eliminación de sus
+                        datos escribiendo a la dirección de contacto del proyecto, conforme a la Ley Orgánica de
+                        Protección de Datos Personales del Ecuador.
+                    </Text>
+                </View>
+
+                <View style={s.caja} wrap={false}>
+                    <Text style={s.cajaTitulo}>Verificación</Text>
+                    <Text style={s.cajaTexto}>
+                        Reporte {p.reportCode}, emitido el {p.date}. Guarde el enlace de abajo: es la única forma de
+                        volver a abrir su diagnóstico.
+                    </Text>
+                    <Text
+                        style={{
+                            fontSize: 8.5,
+                            fontFamily: 'Courier-Bold',
+                            color: C.morado,
+                            marginTop: 6,
+                        }}
+                    >
+                        {p.verifyUrl}
+                    </Text>
+                </View>
+
+                <Pie {...pie} />
+            </Page>
+        </Document>
+    )
+}

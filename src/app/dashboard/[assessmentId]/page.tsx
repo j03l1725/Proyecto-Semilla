@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { MaturityChart } from '@/components/charts/MaturityChart'
 import { DownloadReportButton } from '@/components/pdf/DownloadReportButton'
+import { EnlacePermanente } from '@/components/EnlacePermanente'
 import { computeAssessmentResult } from '@/lib/scoring'
+import { reportCode, reportUrl, reportUrlCorta } from '@/lib/reporte'
 import { Medal, Building2, Calendar, FileText, ArrowRight } from 'lucide-react'
 
 // Resultado individual con datos en vivo: se renderiza en cada petición.
@@ -40,8 +42,16 @@ export default async function AssessmentResultPage({ params }: { params: Promise
         assessment.answers.map(a => ({
             dimension: a.question.dimension.name,
             weight: a.option.weight,
+            questionText: a.question.text,
+            optionText: a.option.text,
         }))
     )
+
+    // Identidad recuperable del reporte: el emprendedor se lleva un codigo y una
+    // direccion, no solo un archivo descargado.
+    const codigo = reportCode(assessment.id, assessment.createdAt)
+    const enlace = reportUrl(assessment.id)
+    const enlaceCorto = reportUrlCorta(assessment.id)
 
     // Puntaje bruto máximo (21 ítems × 2 puntos)
     const maxTotalScore = assessment.answers.length * 2;
@@ -155,9 +165,15 @@ export default async function AssessmentResultPage({ params }: { params: Promise
                             level={result.level}
                             totalRawScore={result.totalRawScore}
                             maxRawScore={maxTotalScore}
+                            city={assessment.company.city}
+                            province={assessment.company.province}
                             dimensions={result.dimensions}
                             priorities={result.priorities}
+                            reportCode={codigo}
+                            verifyUrl={enlaceCorto}
                         />
+
+                        <EnlacePermanente url={enlace} codigo={codigo} />
 
                         <Link href="/" passHref className="w-full">
                             <Button variant="outline" size="lg" className="w-full bg-[#131b17]/50 hover:bg-[#131b17] border-white/10 hover:border-white/20 text-slate-300 hover:text-white h-14 rounded-2xl font-semibold backdrop-blur-md transition-all group">

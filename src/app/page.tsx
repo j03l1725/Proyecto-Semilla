@@ -107,12 +107,19 @@ export default function Home() {
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-emerald-500/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-green-400/10 rounded-full blur-[150px] pointer-events-none" />
 
-      {/* Nav Brand inside Left section */}
-      <div className="absolute top-8 left-8 lg:left-16 z-50 flex items-center space-x-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20">
-          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="white"><path d="M12 2l8.66 5v10L12 22 3.34 17V7z" /></svg>
+      {/* Identidad institucional. El emprendedor llega por WhatsApp: si no ve
+          de quien viene la invitacion, no completa el formulario. */}
+      <div className="absolute top-6 left-8 lg:left-16 z-50 flex items-center gap-4">
+        <img
+          src="/indoamerica-membrete.png"
+          alt="Universidad Indoamérica"
+          className="h-9 w-auto brightness-0 invert opacity-90"
+        />
+        <div className="h-8 w-px bg-white/15" />
+        <div>
+          <p className="text-sm font-bold text-white leading-tight tracking-tight">Proyecto Semilla</p>
+          <p className="text-[11px] text-slate-400 leading-tight">Madurez digital de microemprendimientos</p>
         </div>
-        <span className="text-2xl font-bold tracking-tighter text-white">Madurez Digital</span>
       </div>
 
       {/* Lado izquierdo: Propuesta de valor Hero */}
@@ -125,30 +132,36 @@ export default function Home() {
         >
           <div className="inline-flex items-center px-3 py-1 mb-6 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-sm font-medium tracking-wide">
             <span className="w-2 h-2 rounded-full bg-green-400 mr-2 animate-pulse" />
-            Evaluación Base 42.0 (V2) Activa
+            Gratuito · Universidad Indoamérica
           </div>
 
           <h1 className="text-5xl md:text-6xl lg:text-[5.5rem] font-medium tracking-tight leading-[1.05] text-[#f4f7f5] mb-6">
-            Tu diagnóstico de <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500">Madurez Digital</span> en una sola vista.
+            Su diagnóstico de <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500">Madurez Digital</span> en una sola vista.
           </h1>
 
           <p className="text-lg md:text-xl text-slate-400 font-light max-w-xl leading-relaxed mb-12">
-            Deja de adivinar el estado tecnológico de tu negocio. Esta herramienta te brinda una brújula precisa evaluada en 6 dimensiones estructurales en menos de 5 minutos, directo a tu pantalla.
+            Responda 21 preguntas y reciba un reporte con su nivel de madurez digital en 6 dimensiones,
+            sus fortalezas y un plan de acción con los primeros pasos concretos. Toma menos de 5 minutos y
+            el reporte en PDF es suyo al terminar.
           </p>
 
           {/* Stats indicators */}
           <div className="flex gap-4 sm:gap-6 flex-wrap mb-16">
             <div className="px-6 py-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
-              <div className="text-2xl font-bold text-white mb-1">100%</div>
-              <div className="text-sm text-slate-400 font-medium">Digital</div>
-            </div>
-            <div className="px-6 py-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
-              <div className="text-2xl font-bold text-white mb-1">6 Ejes</div>
-              <div className="text-sm text-slate-400 font-medium">Diagnósticos</div>
+              <div className="text-2xl font-bold text-white mb-1">6</div>
+              <div className="text-sm text-slate-400 font-medium">Dimensiones</div>
             </div>
             <div className="px-6 py-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
               <div className="text-2xl font-bold text-white mb-1">21</div>
               <div className="text-sm text-slate-400 font-medium">Preguntas</div>
+            </div>
+            <div className="px-6 py-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
+              <div className="text-2xl font-bold text-white mb-1">5 min</div>
+              <div className="text-sm text-slate-400 font-medium">Aproximados</div>
+            </div>
+            <div className="px-6 py-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm">
+              <div className="text-2xl font-bold text-white mb-1">PDF</div>
+              <div className="text-sm text-slate-400 font-medium">Reporte propio</div>
             </div>
           </div>
 
@@ -168,7 +181,7 @@ export default function Home() {
             {/* Header */}
             <div className="px-8 pt-8 pb-4">
               <h2 className="text-2xl font-semibold text-white tracking-tight">Registro de Emprendimiento</h2>
-              <p className="text-sm text-slate-400 mt-2">Completa tus datos para iniciar el diagnóstico de madurez digital.</p>
+              <p className="text-sm text-slate-400 mt-2">Complete sus datos para iniciar el diagnóstico. Los usamos para emitir su reporte y para el estudio; nunca se publican.</p>
             </div>
 
             <CardContent className="px-8 pb-8">
@@ -203,7 +216,7 @@ export default function Home() {
                       name="contactName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-300 text-xs">Tu Nombre <span className="text-red-400">*</span></FormLabel>
+                          <FormLabel className="text-slate-300 text-xs">Su Nombre <span className="text-red-400">*</span></FormLabel>
                           <FormControl>
                             <Input placeholder="Ej. Ana Pérez" {...field} disabled={isLoading} className={inputStyles} />
                           </FormControl>

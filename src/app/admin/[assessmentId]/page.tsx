@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { MaturityChart } from '@/components/charts/MaturityChart'
 import { DownloadReportButton } from '@/components/pdf/DownloadReportButton'
 import { computeAssessmentResult } from '@/lib/scoring'
+import { reportCode, reportUrlCorta } from '@/lib/reporte'
 import { ArrowLeft, Building2, User, Briefcase, Calendar, Award, FileBarChart, Phone, MapPin } from 'lucide-react'
 
 // Detalle con datos en vivo: se renderiza en cada petición.
@@ -58,6 +59,8 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
         assessment.answers.map(a => ({
             dimension: a.question.dimension.name,
             weight: a.option.weight,
+            questionText: a.question.text,
+            optionText: a.option.text,
         }))
     )
 
@@ -146,8 +149,12 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
                         level={result.level}
                         totalRawScore={result.totalRawScore}
                         maxRawScore={maxTotalScore}
+                        city={assessment.company.city}
+                        province={assessment.company.province}
                         dimensions={result.dimensions}
                         priorities={result.priorities}
+                        reportCode={reportCode(assessment.id, assessment.createdAt)}
+                        verifyUrl={reportUrlCorta(assessment.id)}
                     />
                 </div>
 

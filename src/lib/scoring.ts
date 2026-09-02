@@ -52,6 +52,21 @@ export interface DimensionResult {
     level: MaturityLevel
     /** Brecha de desempeño = 100 − Nᵢ (criterio de priorización IPA). */
     gap: number
+    /** Respuestas individuales de la dimensión, en el orden del cuestionario. */
+    items: ScoredItem[]
+}
+
+/** Grado de urgencia de una dimensión. Se deriva de la brecha, no de la posición. */
+export type Priority = 'alta' | 'media' | 'mantener'
+
+/** Respuesta a un ítem, ya puntuada. */
+export interface ScoredItem {
+    /** Texto de la pregunta tal como está en la base. */
+    questionText: string
+    /** Texto de la opción elegida. */
+    optionText: string
+    /** Puntaje del ítem, 0-2. */
+    weight: number
 }
 
 export interface AssessmentResult {
@@ -71,6 +86,10 @@ export interface AssessmentResult {
 export interface ScoringAnswer {
     dimension: string
     weight: number
+    /** Texto de la pregunta. Opcional: el CSV y las métricas no lo necesitan. */
+    questionText?: string
+    /** Texto de la opción elegida. Opcional, igual que el anterior. */
+    optionText?: string
 }
 
 /** Redondea a un decimal. */
@@ -83,6 +102,18 @@ export function classifyLevel(value: number): MaturityLevel {
     if (value <= LEVEL_THRESHOLDS.incipiente) return 'Incipiente'
     if (value <= LEVEL_THRESHOLDS.transicion) return 'Transición'
     return 'Consolidado'
+}
+
+/**
+ * Urgencia de una dimensión a partir de su brecha, con los mismos umbrales que
+ * clasifican la madurez. Antes el reporte rotulaba «prioridad alta» a las tres
+ * primeras de la lista sin mirar su valor, de modo que un negocio con 100 % en
+ * todo recibía tres urgencias inexistentes.
+ */
+export function classifyPriority(gap: number): Priority {
+    if (gap >= 100 - LEVEL_THRESHOLDS.incipiente) return 'alta'
+    if (gap >= 100 - LEVEL_THRESHOLDS.transicion) return 'media'
+    return 'mantener'
 }
 
 /** Nᵢ — normalización min-max de una dimensión a la escala 0-100. */
@@ -98,18 +129,23 @@ export function normalizeDimension(rawScore: number, questionCount: number): num
  */
 export function computeAssessmentResult(answers: ScoringAnswer[]): AssessmentResult {
     // Agrupar puntajes por dimensión.
-    const grouped: Record<string, { rawScore: number; questionCount: number }> = {}
+    const grouped: Record<string, { rawScore: number; questionCount: number; items: ScoredItem[] }> = {}
     for (const a of answers) {
-        if (!grouped[a.dimension]) grouped[a.dimension] = { rawScore: 0, questionCount: 0 }
+        if (!grouped[a.dimension]) grouped[a.dimension] = { rawScore: 0, questionCount: 0, items: [] }
         grouped[a.dimension].rawScore += a.weight
         grouped[a.dimension].questionCount += 1
+        grouped[a.dimension].items.push({
+            questionText: a.questionText ?? '',
+            optionText: a.optionText ?? '',
+            weight: a.weight,
+        })
     }
 
     // Construir resultados por dimensión en el orden canónico.
     const dimensions: DimensionResult[] = DIMENSION_ORDER
         .filter((name) => grouped[name])
         .map((name) => {
-            const { rawScore, questionCount } = grouped[name]
+            const { rawScore, questionCount, items } = grouped[name]
             const normalized = normalizeDimension(rawScore, questionCount)
             return {
                 name,
@@ -119,6 +155,7 @@ export function computeAssessmentResult(answers: ScoringAnswer[]): AssessmentRes
                 normalized,
                 level: classifyLevel(normalized),
                 gap: round1(100 - normalized),
+                items,
             }
         })
 

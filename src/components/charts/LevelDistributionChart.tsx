@@ -1,48 +1,109 @@
 'use client'
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+
+/**
+ * Reparto de la muestra por nivel de madurez.
+ *
+ * Dos correcciones respecto de la versión anterior:
+ *
+ * ▸ **El color sigue al nivel, no a su posición en el arreglo.** Antes se
+ *   asignaba por índice, así que una muestra en la que solo aparece «Transición»
+ *   la pintaba de rojo —el color del primer elemento— y el panel decía lo
+ *   contrario de lo que pasaba.
+ *
+ * ▸ **La rampa es secuencial, de un solo tono.** Los niveles son una escala
+ *   ordinal, no categorías independientes: van de claro a oscuro conforme sube
+ *   la madurez. El semáforo rojo/ámbar/verde sugería «malo/bueno» donde lo que
+ *   hay es una etapa.
+ *
+ * La animación de entrada está desactivada a propósito: dejaba el gráfico en
+ * cero durante segundo y medio y aparecía vacío en capturas e impresiones.
+ *
+ * ▲ No poner `fill` en el `style` del `<Pie>`. Recharts lo aplica a la figura y
+ * pisa el `fill` de cada `<Cell>`, con lo que el anillo entero sale de un solo
+ * color y la codificación por nivel se pierde sin ningún error visible.
+ */
 
 interface LevelData {
-    name: string;
-    value: number;
+    name: string
+    value: number
 }
 
-interface LevelDistributionChartProps {
-    data: LevelData[];
+const COLOR_NIVEL: Record<string, string> = {
+    Incipiente: '#EDE7F5',
+    'Transición': '#B9A6D9',
+    Consolidado: '#3C2660',
 }
 
-const COLORS = ['#ef4444', '#f59e0b', '#22c55e'] // Rojo (Incipiente), Ámbar (Transición), Verde (Consolidado)
+const BORDE_NIVEL: Record<string, string> = {
+    Incipiente: '#C9B9E0',
+    'Transición': '#8F76BE',
+    Consolidado: '#3C2660',
+}
 
-export function LevelDistributionChart({ data }: LevelDistributionChartProps) {
-    // Filter out any zero value items so they don't render on the pie
-    const validData = data.filter(item => item.value > 0)
+export function LevelDistributionChart({ data }: { data: LevelData[] }) {
+    const validos = data.filter((d) => d.value > 0)
+    const total = validos.reduce((a, d) => a + d.value, 0)
 
-    if (validData.length === 0) {
-        return <div className="h-[300px] flex items-center justify-center text-slate-500 bg-slate-50 rounded-md">No hay datos suficientes para graficar.</div>
+    if (validos.length === 0) {
+        return (
+            <div className="h-[260px] flex items-center justify-center text-sm text-slate-500 bg-slate-50 rounded-md">
+                Sin evaluaciones todavía.
+            </div>
+        )
     }
 
     return (
-        <div className="h-[300px] w-full">
+        <div className="h-[260px] w-full">
             <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                     <Pie
-                        data={validData}
+                        data={validos}
                         cx="50%"
                         cy="50%"
-                        labelLine={false}
-                        label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={100}
-                        fill="#8884d8"
+                        innerRadius={52}
+                        outerRadius={92}
+                        paddingAngle={2}
                         dataKey="value"
+                        isAnimationActive={false}
                     >
-                        {validData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        {validos.map((d) => (
+                            <Cell
+                                key={d.name}
+                                fill={COLOR_NIVEL[d.name] ?? '#B9A6D9'}
+                                stroke={BORDE_NIVEL[d.name] ?? '#8F76BE'}
+                                strokeWidth={1}
+                            />
                         ))}
                     </Pie>
+                    <text
+                        x="50%"
+                        y="47%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        style={{ fontSize: 26, fontWeight: 700, fill: '#3C2660' }}
+                    >
+                        {total}
+                    </text>
+                    <text
+                        x="50%"
+                        y="60%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        style={{ fontSize: 10, fill: '#7A7488' }}
+                    >
+                        {total === 1 ? 'evaluación' : 'evaluaciones'}
+                    </text>
                     <Tooltip
-                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                        formatter={(v, n) => [`${Number(v ?? 0)} de ${total}`, String(n ?? '')]}
+                        contentStyle={{
+                            borderRadius: 8,
+                            border: '1px solid #DEDAE6',
+                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.08)',
+                            fontSize: 13,
+                        }}
                     />
-                    <Legend verticalAlign="bottom" height={36} />
                 </PieChart>
             </ResponsiveContainer>
         </div>

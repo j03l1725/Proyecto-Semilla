@@ -13,6 +13,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 type Option = { id: string; text: string; weight: number }
 type Question = { id: string; text: string; dimension: { id: string, name: string } | null; options: Option[] }
 
+/** Clave del borrador local: sobrevive a una recarga o a una caída de red. */
+const BORRADOR = 'semilla_respuestas'
+
 export default function AssessmentStepper() {
     const router = useRouter()
     const [questions, setQuestions] = useState<Question[]>([])
@@ -20,8 +23,12 @@ export default function AssessmentStepper() {
     const [answers, setAnswers] = useState<Record<string, string>>({})
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
+    const [errorEnvio, setErrorEnvio] = useState<string | null>(null)
     const [companyId, setCompanyId] = useState<string>('')
     const bottomBarRef = useRef<HTMLDivElement>(null)
+    // Temporizador del avance automático. Sin cancelarlo, dos clics seguidos
+    // encadenaban dos avances y se saltaba una pregunta en silencio.
+    const avanceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
         const storedCompanyId = localStorage.getItem('companyId')
@@ -35,6 +42,21 @@ export default function AssessmentStepper() {
             if (res.success && res.questions) {
                 setQuestions(res.questions as Question[])
                 setCompanyId(storedCompanyId)
+
+                // Recuperar un intento a medias. En móvil con datos inestables
+                // basta con que se recargue la página para perder veinte
+                // respuestas y con ellas al participante.
+                try {
+                    const guardadas = localStorage.getItem(BORRADOR)
+                    if (guardadas) {
+                        const prev = JSON.parse(guardadas) as Record<string, string>
+                        setAnswers(prev)
+                        const idx = (res.questions as Question[]).findIndex((q) => !prev[q.id])
+                        setCurrentStep(idx === -1 ? (res.questions as Question[]).length - 1 : idx)
+                    }
+                } catch {
+                    // Un borrador ilegible no debe impedir empezar de nuevo.
+                }
             }
             setLoading(false)
         }
@@ -43,31 +65,48 @@ export default function AssessmentStepper() {
     }, [router])
 
     const handleNext = () => {
+        if (avanceRef.current) {
+            clearTimeout(avanceRef.current)
+            avanceRef.current = null
+        }
         if (currentStep < questions.length - 1) {
             setCurrentStep(curr => curr + 1)
         }
     }
 
     const handlePrev = () => {
+        if (avanceRef.current) {
+            clearTimeout(avanceRef.current)
+            avanceRef.current = null
+        }
         if (currentStep > 0) {
             setCurrentStep(curr => curr - 1)
         }
     }
 
     const handleSelectOption = (questionId: string, optionId: string) => {
-        setAnswers(prev => ({
-            ...prev,
-            [questionId]: optionId
-        }))
+        setAnswers(prev => {
+            const siguiente = { ...prev, [questionId]: optionId }
+            try {
+                localStorage.setItem(BORRADOR, JSON.stringify(siguiente))
+            } catch {
+                // Navegador sin almacenamiento: se sigue sin borrador.
+            }
+            return siguiente
+        })
+        setErrorEnvio(null)
 
-        // Auto-advance para UX suave (Typeform style), solo si NO es la última pregunta
+        // Avance automático estilo Typeform, solo si NO es la última pregunta.
+        if (avanceRef.current) clearTimeout(avanceRef.current)
+
         if (currentStep < questions.length - 1) {
-            setTimeout(() => {
+            avanceRef.current = setTimeout(() => {
+                avanceRef.current = null
                 handleNext()
-            }, 500) // Un poco más de tiempo para ver la selección
+            }, 500)
         } else {
-            // Si es la última pregunta, podemos hacer un scroll suave o llamar la atención al botón
-            setTimeout(() => {
+            avanceRef.current = setTimeout(() => {
+                avanceRef.current = null
                 bottomBarRef.current?.scrollIntoView({ behavior: 'smooth' })
             }, 300)
         }
@@ -75,16 +114,43 @@ export default function AssessmentStepper() {
 
     const handleSubmit = async () => {
         setSubmitting(true)
-        const selectedOptionsIds = Object.values(answers)
-        const res = await submitAssessment(companyId, selectedOptionsIds)
+        setErrorEnvio(null)
 
-        if (res.success) {
-            localStorage.removeItem('companyId')
-            router.push(`/dashboard/${res.assessmentId}`)
-        } else {
-            console.error(res.error)
-            setSubmitting(false)
+        // Sin try/catch, un fallo de red dejaba el botón en «Procesando...»
+        // para siempre y sin ningún mensaje: el emprendedor se quedaba mirando
+        // una pantalla muerta con sus veintiuna respuestas dentro.
+        try {
+            // Sin esta comprobación se enviaban diagnósticos incompletos: el
+            // botón solo miraba la pregunta actual, así que una pregunta saltada
+            // producía un DMI calculado sobre una dimensión con menos ítems, y
+            // el reporte salía como si estuviera completo.
+            const faltante = questions.findIndex((q) => !answers[q.id])
+            if (faltante !== -1) {
+                setCurrentStep(faltante)
+                setErrorEnvio(
+                    `Falta responder la pregunta ${faltante + 1} de ${questions.length}. Le llevamos a ella.`
+                )
+                setSubmitting(false)
+                return
+            }
+
+            const selectedOptionsIds = questions.map((q) => answers[q.id])
+
+            const res = await submitAssessment(companyId, selectedOptionsIds)
+
+            if (res.success && res.assessmentId) {
+                localStorage.removeItem('companyId')
+                localStorage.removeItem(BORRADOR)
+                router.push(`/dashboard/${res.assessmentId}`)
+                return
+            }
+
+            setErrorEnvio(res.error || 'No se pudo guardar el diagnóstico. Intente de nuevo.')
+        } catch (e) {
+            console.error(e)
+            setErrorEnvio('Se perdió la conexión al enviar. Sus respuestas siguen guardadas: pulse de nuevo.')
         }
+        setSubmitting(false)
     }
 
     if (loading) return (
@@ -110,7 +176,8 @@ export default function AssessmentStepper() {
     const hasAnsweredCurrent = !!answers[currentQuestion?.id]
     const isLastStep = currentStep === questions.length - 1
 
-    const answeredCount = Object.keys(answers).length
+    const answeredCount = questions.filter((q) => answers[q.id]).length
+    const todoRespondido = answeredCount === questions.length
     const globalProgress = (answeredCount / questions.length) * 100
 
     return (
@@ -263,6 +330,12 @@ export default function AssessmentStepper() {
                 </div>
 
                 {/* BOTTOM ACTION BAR */}
+                {errorEnvio ? (
+                    <div className="sticky bottom-[76px] mx-4 md:mx-12 mb-2 z-30 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                        {errorEnvio}
+                    </div>
+                ) : null}
+
                 <div ref={bottomBarRef} className="sticky bottom-0 w-full bg-[#0a0f0d]/90 backdrop-blur-xl border-t border-white/5 p-4 sm:p-6 px-4 md:px-12 flex items-center justify-between z-20">
                     <Button
                         variant="ghost"
@@ -276,17 +349,19 @@ export default function AssessmentStepper() {
 
                     <div className="flex items-center space-x-6">
                         <span className="hidden sm:inline-block text-sm font-semibold text-slate-500">
-                            {currentStep + 1} <span className="text-slate-700">/</span> {questions.length}
+                            {/* Respondidas, no paso actual: el paso no dice si quedó un hueco atrás. */}
+                            {answeredCount} <span className="text-slate-700">/</span> {questions.length}
+                            <span className="ml-1 text-slate-700">respondidas</span>
                         </span>
 
                         {isLastStep ? (
                             <Button
                                 size="lg"
                                 onClick={handleSubmit}
-                                disabled={!hasAnsweredCurrent || submitting}
+                                disabled={!todoRespondido || submitting}
                                 className={`
                                     px-8 rounded-full font-bold transition-all duration-300 ease-out h-12 text-[#0a0f0d]
-                                    ${hasAnsweredCurrent
+                                    ${todoRespondido
                                         ? 'bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 shadow-[0_0_20px_rgba(34,197,94,0.4)] hover:shadow-[0_0_30px_rgba(34,197,94,0.6)] scale-105'
                                         : 'bg-white/10 text-slate-500 cursor-not-allowed opacity-50'
                                     }

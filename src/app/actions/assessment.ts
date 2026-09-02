@@ -44,6 +44,24 @@ export async function submitAssessment(companyId: string, selectedOptions: strin
             return { success: false, error: 'No se enviaron respuestas válidas.' }
         }
 
+        // Integridad de la muestra. Un diagnóstico incompleto no se rechaza por
+        // pulcritud: el DMI normaliza cada dimensión por el número de ítems
+        // RESPONDIDOS, así que una pregunta faltante produce un índice que
+        // parece válido y no lo es. Y como el reporte no distingue un caso del
+        // otro, el dato entra a la muestra contaminándola en silencio.
+        const totalPreguntas = await prisma.question.count()
+        const preguntasCubiertas = new Set(optionsData.map((o) => o.questionId)).size
+
+        if (preguntasCubiertas !== totalPreguntas) {
+            console.error(
+                `Envío incompleto: ${preguntasCubiertas} de ${totalPreguntas} preguntas (empresa ${companyId})`
+            )
+            return {
+                success: false,
+                error: `El diagnóstico está incompleto: ${preguntasCubiertas} de ${totalPreguntas} preguntas respondidas.`,
+            }
+        }
+
         // 2. Calcular el resultado con el modelo v3.0 (indicador compuesto OCDE/JRC):
         //    Nᵢ min-max → DMI = promedio simple de las 6 dimensiones → nivel.
         const scoreResult = computeAssessmentResult(
@@ -60,11 +78,12 @@ export async function submitAssessment(companyId: string, selectedOptions: strin
         // 3. Guardar todo en una transacción para asegurar consistencia
         const result = await prisma.$transaction(async (tx) => {
 
-            // Borramos el histórico viejo si un mismo usuario hace varios assessments 
-            // (Para mantener limpia la data analítica asumiendo que es diagnóstico único)
-            await tx.assessment.deleteMany({
-                where: { companyId }
-            })
+            // El histórico NO se borra. Antes cada nueva evaluación eliminaba las
+            // anteriores del mismo emprendimiento, lo que contradecía la promesa
+            // del reporte —«repita el diagnóstico para medir su avance»— y
+            // destruía el único dato longitudinal que el proyecto puede producir.
+            // El panel de investigación resuelve la duplicidad contando solo la
+            // evaluación más reciente de cada emprendimiento en la muestra.
 
             // 5A. Crear el Assessment principal
             const assessment = await tx.assessment.create({
