@@ -260,11 +260,33 @@ export const s = StyleSheet.create({
         marginBottom: 4,
     },
 
-    /* ── Firma de esquina ────────────────────────────────────────────── */
-    ornamento: {
+    /* ── Marca de agua ───────────────────────────────────────────────── */
+    agua: {
         position: 'absolute',
-        right: 20,
-        bottom: 44,
+        right: 30,
+        top: 548,
+        width: 244,
+    },
+
+    /* ── Enlaces ─────────────────────────────────────────────────────── */
+    enlace: {
+        fontSize: 8.5,
+        fontFamily: 'Courier-Bold',
+        color: C.morado,
+        textDecoration: 'none',
+        marginTop: 6,
+    },
+    enlaceBoton: {
+        alignSelf: 'flex-start',
+        backgroundColor: C.morado,
+        color: C.blanco,
+        fontSize: 8,
+        fontFamily: 'Helvetica-Bold',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 3,
+        textDecoration: 'none',
+        marginTop: 8,
     },
 
     /* ── Créditos ────────────────────────────────────────────────────── */
@@ -300,17 +322,8 @@ export const s = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    pieIzq: { flexDirection: 'row', alignItems: 'center' },
+    pieIzq: { flexDirection: 'column' },
     pieTexto: { fontSize: 6.5, color: C.metadato, lineHeight: 1.4 },
-    pieCredito: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginLeft: 10,
-        paddingLeft: 10,
-        borderLeftWidth: 0.8,
-        borderLeftColor: C.linea,
-    },
-    pieCreditoTexto: { fontSize: 5.8, color: C.metadato, letterSpacing: 0.3, marginRight: 5 },
-    pieLogo: { width: 48 },
+    pieEnlace: { fontSize: 6.5, color: C.moradoMedio, lineHeight: 1.4, textDecoration: 'none' },
     pieNum: { fontSize: 6.5, color: C.metadato, fontFamily: 'Helvetica-Bold' },
 })

@@ -171,6 +171,7 @@ export default async function AssessmentResultPage({ params }: { params: Promise
                             priorities={result.priorities}
                             reportCode={codigo}
                             verifyUrl={enlaceCorto}
+                            verifyHref={enlace}
                         />
 
                         <EnlacePermanente url={enlace} codigo={codigo} />

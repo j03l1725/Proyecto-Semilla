@@ -18,6 +18,7 @@ import { computeAssessmentResult, type ScoringAnswer } from '../src/lib/scoring'
 const RAIZ = path.resolve(__dirname, '..')
 const LOGO = path.join(RAIZ, 'public/indoamerica-membrete.png')
 const WORDMARK = path.join(RAIZ, 'public/insideebb-wordmark.png')
+const AGUA = path.join(RAIZ, 'public/insideebb-agua.png')
 
 interface PreguntaBD {
     text: string
@@ -196,8 +197,10 @@ async function main() {
             priorities: r.priorities,
             reportCode: `PS-2026-${perfil.archivo.slice(0, 8).toUpperCase().padEnd(8, 'X')}`,
             verifyUrl: 'semilla.indoamericatech.com/dashboard/ejemplo',
+            verifyHref: 'https://semilla.indoamericatech.com/dashboard/ejemplo',
             logoSrc: LOGO,
             wordmarkSrc: WORDMARK,
+            aguaSrc: AGUA,
         })
 
         // @ts-expect-error - la firma de ReactPDF.render no está tipada para Node

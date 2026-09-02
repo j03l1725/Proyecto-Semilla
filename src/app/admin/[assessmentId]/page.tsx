@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { MaturityChart } from '@/components/charts/MaturityChart'
 import { DownloadReportButton } from '@/components/pdf/DownloadReportButton'
 import { computeAssessmentResult } from '@/lib/scoring'
-import { reportCode, reportUrlCorta } from '@/lib/reporte'
+import { reportCode, reportUrl, reportUrlCorta } from '@/lib/reporte'
 import { ArrowLeft, Building2, User, Briefcase, Calendar, Award, FileBarChart, Phone, MapPin } from 'lucide-react'
 
 // Detalle con datos en vivo: se renderiza en cada petición.
@@ -155,6 +155,7 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
                         priorities={result.priorities}
                         reportCode={reportCode(assessment.id, assessment.createdAt)}
                         verifyUrl={reportUrlCorta(assessment.id)}
+                        verifyHref={reportUrl(assessment.id)}
                     />
                 </div>
 

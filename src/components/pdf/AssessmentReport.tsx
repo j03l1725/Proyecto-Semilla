@@ -1,7 +1,6 @@
 import React from 'react'
-import { Document, Page, Text, View, Image } from '@react-pdf/renderer'
+import { Document, Page, Text, View, Image, Link } from '@react-pdf/renderer'
 import { RadarChartPdf } from './RadarChartPdf'
-import { Ornamento } from './Ornamento'
 import { C, NIVEL, s } from './estilos'
 import {
     DIMENSION_LEVEL_LABEL,
@@ -41,8 +40,10 @@ export interface AssessmentReportProps {
     priorities: DimensionResult[]
     /** Código verificable del reporte. */
     reportCode: string
-    /** Dirección donde este mismo reporte se puede volver a consultar. */
+    /** Dirección legible del reporte, sin el esquema. Se muestra como texto. */
     verifyUrl: string
+    /** La misma dirección con esquema. Es la que hace pulsable el enlace. */
+    verifyHref: string
     /**
      * Rutas de los logotipos. En el navegador se sirven desde `public/`; el
      * script de pruebas los pasa como rutas del sistema de archivos, porque en
@@ -50,10 +51,12 @@ export interface AssessmentReportProps {
      */
     logoSrc?: string
     wordmarkSrc?: string
+    aguaSrc?: string
 }
 
 const LOGO_POR_DEFECTO = '/indoamerica-membrete.png'
 const WORDMARK_POR_DEFECTO = '/insideebb-wordmark.png'
+const AGUA_POR_DEFECTO = '/insideebb-agua.png'
 
 const ETIQUETA_PRIORIDAD: Record<Priority, string> = {
     alta: 'Prioridad alta',
@@ -84,27 +87,29 @@ function Membrete({ reportCode, date, logoSrc }: { reportCode: string; date: str
     )
 }
 
-/** Firma de esquina, fija en todas las páginas. */
-function Firma() {
-    return (
-        <View style={s.ornamento} fixed>
-            <Ornamento />
-        </View>
-    )
+/**
+ * Marca de agua: el logotipo de INSIDEEBB, grande y desvaído, saliendo por el
+ * borde derecho a media altura. Es la única aparición de la marca en las
+ * páginas de contenido —el pie ya no la repite— y el crédito completo va una
+ * sola vez, en la última página.
+ *
+ * ▸ El tono claro viene horneado en el PNG (`insideebb-agua.png`, generado
+ * desde el logotipo oficial), no de una opacidad en tiempo de render: así el
+ * resultado es el mismo en el navegador y en Node, y no depende de que
+ * @react-pdf respete `opacity` sobre una imagen.
+ */
+function Agua({ aguaSrc }: { aguaSrc: string }) {
+    return <Image style={s.agua} src={aguaSrc} fixed />
 }
 
-function Pie({ verifyUrl, wordmarkSrc }: { verifyUrl: string; wordmarkSrc: string }) {
+function Pie({ verifyUrl, verifyHref }: { verifyUrl: string; verifyHref: string }) {
     return (
         <View style={s.pie} fixed>
             <View style={s.pieIzq}>
-                <View>
-                    <Text style={s.pieTexto}>Universidad Indoamérica · Proyecto Semilla 01/2026</Text>
-                    <Text style={s.pieTexto}>Verifique este reporte en {verifyUrl}</Text>
-                </View>
-                <View style={s.pieCredito}>
-                    <Text style={s.pieCreditoTexto}>PLATAFORMA POR</Text>
-                    <Image style={s.pieLogo} src={wordmarkSrc} />
-                </View>
+                <Text style={s.pieTexto}>Universidad Indoamérica · Proyecto Semilla 01/2026</Text>
+                <Link src={verifyHref} style={s.pieEnlace}>
+                    Abrir este reporte en {verifyUrl}
+                </Link>
             </View>
             <Text style={s.pieNum} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </View>
@@ -204,8 +209,9 @@ function accionesDe(d: DimensionResult): AccionResuelta[] {
 export const AssessmentReport = (p: AssessmentReportProps) => {
     const logoSrc = p.logoSrc ?? LOGO_POR_DEFECTO
     const wordmarkSrc = p.wordmarkSrc ?? WORDMARK_POR_DEFECTO
+    const aguaSrc = p.aguaSrc ?? AGUA_POR_DEFECTO
     const marco = { reportCode: p.reportCode, date: p.date, logoSrc }
-    const pie = { verifyUrl: p.verifyUrl, wordmarkSrc }
+    const pie = { verifyUrl: p.verifyUrl, verifyHref: p.verifyHref }
 
     const mejor = [...p.dimensions].sort((a, b) => b.normalized - a.normalized)[0]
     const peor = [...p.dimensions].sort((a, b) => a.normalized - b.normalized)[0]
@@ -244,7 +250,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
         >
             {/* ══════════════ Página 1 · Resultado ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Firma />
+                <Agua aguaSrc={aguaSrc} />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -304,7 +310,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 2 · Desglose ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Firma />
+                <Agua aguaSrc={aguaSrc} />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -373,7 +379,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 3 · Inventario de respuestas ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Firma />
+                <Agua aguaSrc={aguaSrc} />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -414,7 +420,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 4 · Plan de acción ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Firma />
+                <Agua aguaSrc={aguaSrc} />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -524,7 +530,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 5 · Criterios y alcance ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Firma />
+                <Agua aguaSrc={aguaSrc} />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -609,16 +615,12 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
                         Reporte {p.reportCode}, emitido el {p.date}. Guarde el enlace de abajo: es la única forma de
                         volver a abrir su diagnóstico.
                     </Text>
-                    <Text
-                        style={{
-                            fontSize: 8.5,
-                            fontFamily: 'Courier-Bold',
-                            color: C.morado,
-                            marginTop: 6,
-                        }}
-                    >
+                    <Link src={p.verifyHref} style={s.enlace}>
                         {p.verifyUrl}
-                    </Text>
+                    </Link>
+                    <Link src={p.verifyHref} style={s.enlaceBoton}>
+                        Abrir mi diagnóstico
+                    </Link>
                 </View>
 
                 <View style={s.creditos} wrap={false}>
