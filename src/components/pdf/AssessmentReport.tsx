@@ -603,9 +603,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
                         Sus respuestas forman parte de la muestra del proyecto de investigación &quot;Medición del nivel
                         de madurez digital en microemprendimientos&quot; de la Universidad Indoamérica. Los resultados
                         se analizan y publican de forma agregada y anónima: ni el nombre de su emprendimiento ni sus
-                        datos de contacto aparecen en ninguna publicación. Usted puede solicitar la eliminación de sus
-                        datos escribiendo a la dirección de contacto del proyecto, conforme a la Ley Orgánica de
-                        Protección de Datos Personales del Ecuador.
+                        datos de contacto aparecen en ninguna publicación.
                     </Text>
                 </View>
 
