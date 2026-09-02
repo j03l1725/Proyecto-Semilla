@@ -66,14 +66,20 @@ export const s = StyleSheet.create({
         color: C.morado,
         letterSpacing: 0.4,
     },
-    membreteMeta: { fontSize: 6.8, color: C.metadato, marginTop: 2.5 },
+    membreteMeta: { fontSize: 6.8, color: C.metadato, marginTop: 3 },
+    membreteCodigo: {
+        fontSize: 6.8,
+        fontFamily: 'Courier-Bold',
+        color: C.moradoMedio,
+        marginTop: 2,
+    },
 
     /* ── Títulos ─────────────────────────────────────────────────────── */
     titulo: { fontSize: 19, color: C.morado, fontFamily: 'Helvetica-Bold', letterSpacing: -0.4 },
     subtitulo: { fontSize: 9, color: C.secundario, marginTop: 3, lineHeight: 1.4 },
     tituloBloque: { marginBottom: 15 },
 
-    seccion: { marginBottom: 15 },
+    seccion: { marginBottom: 12 },
     seccionTitulo: {
         fontSize: 10.5,
         color: C.morado,
@@ -84,7 +90,7 @@ export const s = StyleSheet.create({
         borderBottomColor: C.linea,
     },
 
-    parrafo: { fontSize: 9, color: C.texto, lineHeight: 1.55 },
+    parrafo: { fontSize: 8.8, color: C.texto, lineHeight: 1.45 },
 
     /* ── Ficha de datos ──────────────────────────────────────────────── */
     fila: { flexDirection: 'row', marginBottom: 3.5 },
@@ -216,14 +222,14 @@ export const s = StyleSheet.create({
         borderColor: C.linea,
         backgroundColor: C.panel,
         borderRadius: 3,
-        padding: 10,
-        marginBottom: 12,
+        padding: 9,
+        marginBottom: 9,
     },
     cajaTitulo: { fontSize: 8.5, color: C.morado, fontFamily: 'Helvetica-Bold', marginBottom: 4 },
-    cajaTexto: { fontSize: 8, color: C.texto, lineHeight: 1.5 },
+    cajaTexto: { fontSize: 8, color: C.texto, lineHeight: 1.42 },
     vinneta: { flexDirection: 'row', marginBottom: 3 },
     vinnetaMarca: { fontSize: 8, color: C.morado, width: 11, fontFamily: 'Helvetica-Bold' },
-    vinnetaTexto: { flex: 1, fontSize: 8, color: C.texto, lineHeight: 1.5 },
+    vinnetaTexto: { flex: 1, fontSize: 8, color: C.texto, lineHeight: 1.42 },
 
     /* ── Inventario de respuestas ────────────────────────────────────── */
     invDim: {
@@ -247,26 +253,39 @@ export const s = StyleSheet.create({
         fontFamily: 'Courier',
         color: C.morado,
         backgroundColor: C.panel,
-        paddingVertical: 4,
+        paddingVertical: 3,
         paddingHorizontal: 8,
         borderRadius: 2,
-        marginTop: 3,
-        marginBottom: 6,
+        marginTop: 2,
+        marginBottom: 4,
     },
 
-    /* ── Marca de agua ───────────────────────────────────────────────── */
-    agua: {
+    /* ── Firma de esquina ────────────────────────────────────────────── */
+    ornamento: {
         position: 'absolute',
-        top: 392,
-        left: 0,
-        right: 0,
-        textAlign: 'center',
-        fontSize: 30,
-        fontFamily: 'Helvetica-Bold',
-        color: C.agua,
-        letterSpacing: 7,
-        transform: 'rotate(-24deg)',
+        right: 20,
+        bottom: 44,
     },
+
+    /* ── Créditos ────────────────────────────────────────────────────── */
+    creditos: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderTopWidth: 0.8,
+        borderTopColor: C.linea,
+        paddingTop: 9,
+        marginTop: 2,
+    },
+    creditoCol: { flex: 1, paddingRight: 14 },
+    creditoRotulo: {
+        fontSize: 6,
+        color: C.metadato,
+        letterSpacing: 0.8,
+        marginBottom: 4,
+    },
+    creditoNombre: { fontSize: 9, color: C.morado, fontFamily: 'Helvetica-Bold' },
+    creditoLogo: { width: 74, marginTop: 1 },
+    creditoNota: { fontSize: 7, color: C.metadato, marginTop: 3, lineHeight: 1.4 },
 
     /* ── Pie ─────────────────────────────────────────────────────────── */
     pie: {
@@ -283,6 +302,15 @@ export const s = StyleSheet.create({
     },
     pieIzq: { flexDirection: 'row', alignItems: 'center' },
     pieTexto: { fontSize: 6.5, color: C.metadato, lineHeight: 1.4 },
-    pieLogo: { width: 46, marginLeft: 6 },
+    pieCredito: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginLeft: 10,
+        paddingLeft: 10,
+        borderLeftWidth: 0.8,
+        borderLeftColor: C.linea,
+    },
+    pieCreditoTexto: { fontSize: 5.8, color: C.metadato, letterSpacing: 0.3, marginRight: 5 },
+    pieLogo: { width: 48 },
     pieNum: { fontSize: 6.5, color: C.metadato, fontFamily: 'Helvetica-Bold' },
 })

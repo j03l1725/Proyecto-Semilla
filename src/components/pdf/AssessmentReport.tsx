@@ -1,6 +1,7 @@
 import React from 'react'
 import { Document, Page, Text, View, Image } from '@react-pdf/renderer'
 import { RadarChartPdf } from './RadarChartPdf'
+import { Ornamento } from './Ornamento'
 import { C, NIVEL, s } from './estilos'
 import {
     DIMENSION_LEVEL_LABEL,
@@ -75,21 +76,20 @@ function Membrete({ reportCode, date, logoSrc }: { reportCode: string; date: str
         <View style={s.membrete} fixed>
             <Image style={s.logo} src={logoSrc} />
             <View style={s.membreteDer}>
-                <Text style={s.membreteProyecto}>PROYECTO SEMILLA · CONVOCATORIA 01/2026</Text>
-                <Text style={s.membreteMeta}>Diagnóstico de madurez digital de microemprendimientos</Text>
-                <Text style={s.membreteMeta}>
-                    Reporte {reportCode} · {date}
-                </Text>
+                <Text style={s.membreteProyecto}>DIAGNÓSTICO DE MADUREZ DIGITAL</Text>
+                <Text style={s.membreteMeta}>{date}</Text>
+                <Text style={s.membreteCodigo}>{reportCode}</Text>
             </View>
         </View>
     )
 }
 
-function Agua() {
+/** Firma de esquina, fija en todas las páginas. */
+function Firma() {
     return (
-        <Text style={s.agua} fixed>
-            PROYECTO SEMILLA
-        </Text>
+        <View style={s.ornamento} fixed>
+            <Ornamento />
+        </View>
     )
 }
 
@@ -101,7 +101,10 @@ function Pie({ verifyUrl, wordmarkSrc }: { verifyUrl: string; wordmarkSrc: strin
                     <Text style={s.pieTexto}>Universidad Indoamérica · Proyecto Semilla 01/2026</Text>
                     <Text style={s.pieTexto}>Verifique este reporte en {verifyUrl}</Text>
                 </View>
-                <Image style={s.pieLogo} src={wordmarkSrc} />
+                <View style={s.pieCredito}>
+                    <Text style={s.pieCreditoTexto}>PLATAFORMA POR</Text>
+                    <Image style={s.pieLogo} src={wordmarkSrc} />
+                </View>
             </View>
             <Text style={s.pieNum} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </View>
@@ -241,7 +244,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
         >
             {/* ══════════════ Página 1 · Resultado ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Agua />
+                <Firma />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -301,7 +304,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 2 · Desglose ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Agua />
+                <Firma />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -370,7 +373,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 3 · Inventario de respuestas ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Agua />
+                <Firma />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -411,7 +414,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 4 · Plan de acción ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Agua />
+                <Firma />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -521,7 +524,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 5 · Criterios y alcance ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Agua />
+                <Firma />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -553,10 +556,10 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
                     <Text style={s.formula}>Brecha = 100 - Ni</Text>
                     <Text style={s.parrafo}>
                         La prioridad de cada dimensión sale de su brecha, siguiendo el análisis importancia-desempeño
-                        de Martilla y James (1977). Los tres niveles dividen la escala en tres tramos iguales, según el
-                        escalonamiento por etapas habitual en los modelos de madurez (de Bruin y otros, 2005; Becker y
-                        otros, 2009). Las seis dimensiones y los veintiún ítems se derivan del Digital Maturity Model
-                        para pymes de Williams y otros (2024) y del Digital Maturity Assessment de la Comisión Europea,
+                        de Martilla y James (1977). Los tres niveles dividen la escala en tramos iguales, según el
+                        escalonamiento por etapas de los modelos de madurez (de Bruin y otros, 2005; Becker y otros,
+                        2009). Las seis dimensiones y los veintiún ítems se derivan del Digital Maturity Model para
+                        pymes de Williams y otros (2024) y del Digital Maturity Assessment de la Comisión Europea,
                         adaptados al contexto ecuatoriano.
                     </Text>
                 </View>
@@ -616,6 +619,23 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
                     >
                         {p.verifyUrl}
                     </Text>
+                </View>
+
+                <View style={s.creditos} wrap={false}>
+                    <View style={s.creditoCol}>
+                        <Text style={s.creditoRotulo}>INVESTIGACIÓN</Text>
+                        <Text style={s.creditoNombre}>Universidad Indoamérica</Text>
+                        <Text style={s.creditoNota}>
+                            Proyecto Semilla 01/2026 · Medición del nivel de madurez digital en microemprendimientos
+                        </Text>
+                    </View>
+                    <View style={s.creditoCol}>
+                        <Text style={s.creditoRotulo}>DESARROLLO DE LA PLATAFORMA</Text>
+                        <Image style={s.creditoLogo} src={wordmarkSrc} />
+                        <Text style={s.creditoNota}>
+                            Instrumento, modelo de cálculo y reporte
+                        </Text>
+                    </View>
                 </View>
 
                 <Pie {...pie} />
