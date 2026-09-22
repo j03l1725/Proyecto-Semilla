@@ -17,8 +17,6 @@ import { computeAssessmentResult, type ScoringAnswer } from '../src/lib/scoring'
 
 const RAIZ = path.resolve(__dirname, '..')
 const LOGO = path.join(RAIZ, 'public/indoamerica-membrete.png')
-const WORDMARK = path.join(RAIZ, 'public/insideebb-wordmark.png')
-const AGUA = path.join(RAIZ, 'public/insideebb-agua.png')
 
 interface PreguntaBD {
     text: string
@@ -133,9 +131,13 @@ const PERFILES: Perfil[] = [
 ]
 
 async function cargarPreguntas(): Promise<PreguntaBD[]> {
+    // El servidor remoto exige SSL; el contenedor de pruebas local no lo
+    // soporta y la conexion fallaba antes de leer una sola pregunta.
+    const cadena = process.env.DIRECT_URL || process.env.DATABASE_URL
+    const esLocal = /@(localhost|127\.0\.0\.1)[:/]/.test(cadena ?? '')
     const pool = new Pool({
-        connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false },
+        connectionString: cadena,
+        ssl: esLocal ? false : { rejectUnauthorized: false },
     })
     const { rows } = await pool.query(
         `select q.text, d.name as dimension, o.text as opcion, o.weight
@@ -199,8 +201,6 @@ async function main() {
             verifyUrl: 'semilla.indoamericatech.com/dashboard/ejemplo',
             verifyHref: 'https://semilla.indoamericatech.com/dashboard/ejemplo',
             logoSrc: LOGO,
-            wordmarkSrc: WORDMARK,
-            aguaSrc: AGUA,
         })
 
         // @ts-expect-error - la firma de ReactPDF.render no está tipada para Node

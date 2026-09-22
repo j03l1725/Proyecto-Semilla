@@ -50,13 +50,9 @@ export interface AssessmentReportProps {
      * Node no hay origen desde el que resolver una ruta absoluta.
      */
     logoSrc?: string
-    wordmarkSrc?: string
-    aguaSrc?: string
 }
 
 const LOGO_POR_DEFECTO = '/indoamerica-membrete.png'
-const WORDMARK_POR_DEFECTO = '/insideebb-wordmark.png'
-const AGUA_POR_DEFECTO = '/insideebb-agua.png'
 
 const ETIQUETA_PRIORIDAD: Record<Priority, string> = {
     alta: 'Prioridad alta',
@@ -87,26 +83,11 @@ function Membrete({ reportCode, date, logoSrc }: { reportCode: string; date: str
     )
 }
 
-/**
- * Marca de agua: el logotipo de INSIDEEBB, grande y desvaído, saliendo por el
- * borde derecho a media altura. Es la única aparición de la marca en las
- * páginas de contenido —el pie ya no la repite— y el crédito completo va una
- * sola vez, en la última página.
- *
- * ▸ El tono claro viene horneado en el PNG (`insideebb-agua.png`, generado
- * desde el logotipo oficial), no de una opacidad en tiempo de render: así el
- * resultado es el mismo en el navegador y en Node, y no depende de que
- * @react-pdf respete `opacity` sobre una imagen.
- */
-function Agua({ aguaSrc }: { aguaSrc: string }) {
-    return <Image style={s.agua} src={aguaSrc} fixed />
-}
-
 function Pie({ verifyUrl, verifyHref }: { verifyUrl: string; verifyHref: string }) {
     return (
         <View style={s.pie} fixed>
             <View style={s.pieIzq}>
-                <Text style={s.pieTexto}>Universidad Indoamérica · Proyecto Semilla 01/2026</Text>
+                <Text style={s.pieTexto}>Universidad Indoamérica · 01/2026</Text>
                 <Link src={verifyHref} style={s.pieEnlace}>
                     Abrir este reporte en {verifyUrl}
                 </Link>
@@ -208,8 +189,6 @@ function accionesDe(d: DimensionResult): AccionResuelta[] {
 
 export const AssessmentReport = (p: AssessmentReportProps) => {
     const logoSrc = p.logoSrc ?? LOGO_POR_DEFECTO
-    const wordmarkSrc = p.wordmarkSrc ?? WORDMARK_POR_DEFECTO
-    const aguaSrc = p.aguaSrc ?? AGUA_POR_DEFECTO
     const marco = { reportCode: p.reportCode, date: p.date, logoSrc }
     const pie = { verifyUrl: p.verifyUrl, verifyHref: p.verifyHref }
 
@@ -244,13 +223,12 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
     return (
         <Document
             title={`Diagnóstico de Madurez Digital — ${p.companyName}`}
-            author="Universidad Indoamérica · Proyecto Semilla"
+            author="Universidad Indoamérica"
             subject="Reporte de autodiagnóstico de madurez digital"
-            creator="Plataforma de Madurez Digital · Proyecto Semilla"
+            creator="Plataforma de Madurez Digital"
         >
             {/* ══════════════ Página 1 · Resultado ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Agua aguaSrc={aguaSrc} />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -310,7 +288,6 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 2 · Desglose ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Agua aguaSrc={aguaSrc} />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -379,7 +356,6 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 3 · Inventario de respuestas ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Agua aguaSrc={aguaSrc} />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -420,7 +396,6 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 4 · Plan de acción ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Agua aguaSrc={aguaSrc} />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -530,7 +505,6 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
 
             {/* ══════════════ Página 5 · Criterios y alcance ══════════════ */}
             <Page size="A4" style={s.page}>
-                <Agua aguaSrc={aguaSrc} />
                 <Membrete {...marco} />
 
                 <View style={s.tituloBloque}>
@@ -626,14 +600,7 @@ export const AssessmentReport = (p: AssessmentReportProps) => {
                         <Text style={s.creditoRotulo}>INVESTIGACIÓN</Text>
                         <Text style={s.creditoNombre}>Universidad Indoamérica</Text>
                         <Text style={s.creditoNota}>
-                            Proyecto Semilla 01/2026 · Medición del nivel de madurez digital en microemprendimientos
-                        </Text>
-                    </View>
-                    <View style={s.creditoCol}>
-                        <Text style={s.creditoRotulo}>DESARROLLO DE LA PLATAFORMA</Text>
-                        <Image style={s.creditoLogo} src={wordmarkSrc} />
-                        <Text style={s.creditoNota}>
-                            Instrumento, modelo de cálculo y reporte
+                            01/2026 · Medición del nivel de madurez digital en microemprendimientos
                         </Text>
                     </View>
                 </View>

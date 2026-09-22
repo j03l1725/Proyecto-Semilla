@@ -261,13 +261,6 @@ export const s = StyleSheet.create({
     },
 
     /* ── Marca de agua ───────────────────────────────────────────────── */
-    agua: {
-        position: 'absolute',
-        right: 30,
-        top: 548,
-        width: 244,
-    },
-
     /* ── Enlaces ─────────────────────────────────────────────────────── */
     enlace: {
         fontSize: 8.5,
@@ -306,7 +299,6 @@ export const s = StyleSheet.create({
         marginBottom: 4,
     },
     creditoNombre: { fontSize: 9, color: C.morado, fontFamily: 'Helvetica-Bold' },
-    creditoLogo: { width: 74, marginTop: 1 },
     creditoNota: { fontSize: 7, color: C.metadato, marginTop: 3, lineHeight: 1.4 },
 
     /* ── Pie ─────────────────────────────────────────────────────────── */

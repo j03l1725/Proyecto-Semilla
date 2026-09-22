@@ -48,7 +48,7 @@ export function LevelDistributionChart({ data }: { data: LevelData[] }) {
 
     if (validos.length === 0) {
         return (
-            <div className="h-[260px] flex items-center justify-center text-sm text-slate-500 bg-slate-50 rounded-md">
+            <div className="h-[260px] flex items-center justify-center text-sm text-[#6b6480] bg-morado-50 rounded-md">
                 Sin evaluaciones todavía.
             </div>
         )
@@ -91,7 +91,7 @@ export function LevelDistributionChart({ data }: { data: LevelData[] }) {
                         y="60%"
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        style={{ fontSize: 10, fill: '#7A7488' }}
+                        style={{ fontSize: 10, fill: '#6b6480' }}
                     >
                         {total === 1 ? 'evaluación' : 'evaluaciones'}
                     </text>

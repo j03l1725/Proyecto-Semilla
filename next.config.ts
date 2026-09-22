@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+
+  // La pastilla flotante de Next en la esquina inferior izquierda. Solo sale
+  // en desarrollo -en produccion nunca se sirve-, pero estorba al revisar el
+  // diseno y al tomar capturas.
+  devIndicators: false,
 };
 
 export default nextConfig;

@@ -31,13 +31,16 @@ export default function AdminLoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-sm shadow-xl border-slate-200">
+        <div className="min-h-screen bg-[radial-gradient(120%_90%_at_50%_0%,#3c235f_0%,#241348_45%,#14082a_85%)] flex flex-col items-center justify-center gap-8 p-4">
+            <img src="/uti-oscuro-con-nombre.png" alt="Universidad Indoamérica" className="h-10 w-auto opacity-95" />
+            <Card className="w-full max-w-sm shadow-2xl border-morado-200 overflow-hidden">
+                {/* Filo de marca: morado -> naranja. */}
+                <div className="h-1 -mt-6 bg-gradient-to-r from-morado-700 via-morado-500 to-naranja-500" />
                 <CardHeader className="text-center space-y-2">
-                    <div className="mx-auto bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mb-2">
-                        <Lock className="w-6 h-6 text-blue-600" />
+                    <div className="mx-auto bg-morado-100 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+                        <Lock className="w-6 h-6 text-morado-700" />
                     </div>
-                    <CardTitle className="text-2xl font-bold text-slate-800">Acceso Restringido</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-morado-700">Acceso Restringido</CardTitle>
                     <CardDescription>
                         Panel de Investigadores. Ingresa la credencial maestra para continuar.
                     </CardDescription>
@@ -56,9 +59,9 @@ export default function AdminLoginPage() {
                             />
                         </div>
 
-                        {error && <p className="text-sm border border-red-200 bg-red-50 text-red-600 p-2 rounded-md">{error}</p>}
+                        {error && <p role="alert" className="text-sm border border-naranja-200 bg-naranja-100 text-naranja-700 p-2 rounded-md">{error}</p>}
 
-                        <Button type="submit" className="w-full font-semibold" disabled={loading}>
+                        <Button type="submit" className="w-full font-semibold bg-morado-700 hover:bg-morado-600" disabled={loading}>
                             {loading ? 'Verificando...' : 'Entrar al Panel'}
                         </Button>
                     </form>

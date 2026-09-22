@@ -73,17 +73,17 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
 
     const getLevelStyles = (level: string | null) => {
         switch (level) {
-            case 'Consolidado': return 'bg-emerald-100 text-emerald-700 border-emerald-200'
-            case 'Transición': return 'bg-amber-100 text-amber-700 border-amber-200'
-            case 'Incipiente': return 'bg-red-100 text-red-700 border-red-200'
-            default: return 'bg-slate-100 text-slate-700 border-slate-200'
+            case 'Consolidado': return 'bg-morado-700 text-white border-morado-700'
+            case 'Transición': return 'bg-morado-300 text-morado-900 border-morado-400'
+            case 'Incipiente': return 'bg-morado-100 text-morado-600 border-morado-200'
+            default: return 'bg-morado-50 text-[#5a5566] border-morado-200'
         }
     }
 
     const getDimLevelLabel = (percentage: number) => {
-        if (percentage <= 33.33) return { label: 'Básico', color: 'text-red-600 bg-red-50' }
-        if (percentage <= 66.66) return { label: 'Intermedio', color: 'text-amber-600 bg-amber-50' }
-        return { label: 'Avanzado', color: 'text-emerald-600 bg-emerald-50' }
+        if (percentage <= 33.33) return { label: 'Básico', color: 'text-morado-600 bg-morado-100' }
+        if (percentage <= 66.66) return { label: 'Intermedio', color: 'text-morado-900 bg-morado-300' }
+        return { label: 'Avanzado', color: 'text-white bg-morado-700' }
     }
 
     // Orden de dimensiones para mostrar
@@ -97,7 +97,7 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
     ]
 
     return (
-        <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+        <div className="min-h-screen bg-morado-50 p-4 md:p-8">
             <div className="max-w-6xl mx-auto space-y-6">
 
                 {/* Header con navegación */}
@@ -113,11 +113,11 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
                 {/* Cabecera del emprendimiento */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-800 tracking-tight flex items-center gap-3">
-                            <Building2 className="w-8 h-8 text-blue-600" />
+                        <h1 className="text-3xl font-bold text-morado-700 tracking-tight flex items-center gap-3">
+                            <Building2 className="w-8 h-8 text-morado-700" />
                             {assessment.company.name}
                         </h1>
-                        <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500">
+                        <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-[#6b6480]">
                             {assessment.company.contactName && (
                                 <span className="flex items-center gap-1"><User className="w-4 h-4" /> {assessment.company.contactName}</span>
                             )}
@@ -161,23 +161,23 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
 
                 {/* Tarjetas de resumen rápido */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="border-slate-200">
+                    <Card className="border-morado-200">
                         <CardContent className="pt-6 text-center">
-                            <p className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Puntaje Bruto</p>
-                            <p className="text-4xl font-black text-slate-800">{assessment.totalScore}<span className="text-lg text-slate-400 font-medium">/{maxTotalScore}</span></p>
+                            <p className="text-sm font-medium text-[#6b6480] uppercase tracking-wide mb-1">Puntaje Bruto</p>
+                            <p className="text-4xl font-black text-morado-700">{assessment.totalScore}<span className="text-lg text-[#6b6480] font-medium">/{maxTotalScore}</span></p>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-slate-200">
+                    <Card className="border-morado-200">
                         <CardContent className="pt-6 text-center">
-                            <p className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Índice de Madurez (DMI)</p>
-                            <p className="text-4xl font-black text-slate-800">{result.dmi.toFixed(1)}<span className="text-lg text-slate-400 font-medium">%</span></p>
+                            <p className="text-sm font-medium text-[#6b6480] uppercase tracking-wide mb-1">Índice de Madurez (DMI)</p>
+                            <p className="text-4xl font-black text-morado-700">{result.dmi.toFixed(1)}<span className="text-lg text-[#6b6480] font-medium">%</span></p>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-slate-200">
+                    <Card className="border-morado-200">
                         <CardContent className="pt-6 text-center">
-                            <p className="text-sm font-medium text-slate-500 uppercase tracking-wide mb-1">Nivel de Madurez</p>
+                            <p className="text-sm font-medium text-[#6b6480] uppercase tracking-wide mb-1">Nivel de Madurez</p>
                             <div className="mt-1">
                                 <span className={`inline-flex px-4 py-2 rounded-full text-lg font-bold border ${getLevelStyles(result.level)}`}>
                                     <Award className="w-5 h-5 mr-2" />
@@ -192,23 +192,23 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                     {/* Radar */}
-                    <Card className="lg:col-span-5 border-slate-200">
+                    <Card className="lg:col-span-5 border-morado-200">
                         <CardHeader>
-                            <CardTitle className="text-lg text-slate-800 flex items-center gap-2">
-                                <FileBarChart className="w-5 h-5 text-blue-600" />
+                            <CardTitle className="text-lg text-morado-700 flex items-center gap-2">
+                                <FileBarChart className="w-5 h-5 text-morado-700" />
                                 Mapa de Capacidades
                             </CardTitle>
                             <CardDescription>Visualización radial normalizada (0-100%)</CardDescription>
                         </CardHeader>
-                        <CardContent className="min-h-[400px] flex items-center justify-center bg-[#0a0f0d] rounded-xl mx-4 mb-4">
+                        <CardContent className="min-h-[400px] flex items-center justify-center bg-[radial-gradient(90%_90%_at_50%_30%,#3c235f_0%,#241348_55%,#14082a_100%)] rounded-xl mx-4 mb-4">
                             <MaturityChart data={chartData} />
                         </CardContent>
                     </Card>
 
                     {/* Tabla de dimensiones */}
-                    <Card className="lg:col-span-7 border-slate-200">
+                    <Card className="lg:col-span-7 border-morado-200">
                         <CardHeader>
-                            <CardTitle className="text-lg text-slate-800">Desglose por Dimensión</CardTitle>
+                            <CardTitle className="text-lg text-morado-700">Desglose por Dimensión</CardTitle>
                             <CardDescription>Puntaje bruto, porcentaje normalizado y nivel individual</CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -221,22 +221,22 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
                                     const dimLevel = getDimLevelLabel(pct)
 
                                     return (
-                                        <div key={dimName} className="p-4 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-colors">
+                                        <div key={dimName} className="p-4 rounded-xl border border-morado-100 bg-white hover:border-morado-300 transition-colors">
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                                                <h4 className="font-semibold text-slate-800 text-sm">{dimName}</h4>
+                                                <h4 className="font-semibold text-morado-700 text-sm">{dimName}</h4>
                                                 <div className="flex items-center gap-2">
                                                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${dimLevel.color}`}>{dimLevel.label}</span>
                                                 </div>
                                             </div>
                                             {/* Barra de progreso */}
                                             <div className="flex items-center gap-3">
-                                                <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                                                <div className="flex-1 h-3 bg-morado-100 rounded-full overflow-hidden">
                                                     <div
-                                                        className={`h-full rounded-full transition-all duration-500 ${pct <= 33.33 ? 'bg-red-400' : pct <= 66.66 ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                                                        className={`h-full rounded-full transition-all duration-500 ${pct <= 33.33 ? 'bg-morado-300' : pct <= 66.66 ? 'bg-morado-500' : 'bg-morado-700'}`}
                                                         style={{ width: `${pct}%` }}
                                                     />
                                                 </div>
-                                                <span className="text-sm font-bold text-slate-700 min-w-[60px] text-right">{data.score}/{maxScore} ({pct}%)</span>
+                                                <span className="text-sm font-bold text-[#3a3547] min-w-[60px] text-right">{data.score}/{maxScore} ({pct}%)</span>
                                             </div>
                                         </div>
                                     )
@@ -247,9 +247,9 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
                 </div>
 
                 {/* Detalle de respuestas por dimensión */}
-                <Card className="border-slate-200">
+                <Card className="border-morado-200">
                     <CardHeader>
-                        <CardTitle className="text-lg text-slate-800">Respuestas Individuales</CardTitle>
+                        <CardTitle className="text-lg text-morado-700">Respuestas Individuales</CardTitle>
                         <CardDescription>Detalle pregunta por pregunta de lo que respondió el emprendedor</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -260,20 +260,20 @@ export default async function AdminAssessmentDetailPage({ params }: { params: Pr
 
                                 return (
                                     <div key={dimName}>
-                                        <h3 className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-3 border-b border-slate-100 pb-2">
+                                        <h3 className="font-bold text-[#3a3547] text-sm uppercase tracking-wide mb-3 border-b border-morado-100 pb-2">
                                             {dimName}
                                         </h3>
                                         <div className="space-y-3">
                                             {data.answers.map((ans, idx) => (
-                                                <div key={idx} className="flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-slate-50/80 border border-slate-100">
+                                                <div key={idx} className="flex flex-col sm:flex-row gap-2 p-3 rounded-lg bg-morado-50/80 border border-morado-100">
                                                     <div className="flex-1">
-                                                        <p className="text-sm font-medium text-slate-700">{ans.question}</p>
-                                                        <p className="text-sm text-slate-500 mt-1">→ {ans.answer}</p>
+                                                        <p className="text-sm font-medium text-[#3a3547]">{ans.question}</p>
+                                                        <p className="text-sm text-[#6b6480] mt-1">→ {ans.answer}</p>
                                                     </div>
                                                     <div className="flex items-center">
-                                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${ans.weight === 0 ? 'bg-red-100 text-red-600' :
-                                                                ans.weight === 1 ? 'bg-amber-100 text-amber-600' :
-                                                                    'bg-emerald-100 text-emerald-600'
+                                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${ans.weight === 0 ? 'bg-naranja-100 text-naranja-700' :
+                                                                ans.weight === 1 ? 'bg-morado-100 text-morado-600' :
+                                                                    'bg-morado-700 text-white'
                                                             }`}>
                                                             {ans.weight} pts
                                                         </span>

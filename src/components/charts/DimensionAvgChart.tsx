@@ -30,7 +30,7 @@ const CORTAS: Record<string, string> = {
 export function DimensionAvgChart({ data }: { data: DimensionAvgData[] }) {
     if (!data || data.length === 0) {
         return (
-            <div className="h-[260px] flex items-center justify-center text-sm text-slate-500 bg-slate-50 rounded-md">
+            <div className="h-[260px] flex items-center justify-center text-sm text-[#6b6480] bg-morado-50 rounded-md">
                 Sin evaluaciones todavía.
             </div>
         )
@@ -46,7 +46,7 @@ export function DimensionAvgChart({ data }: { data: DimensionAvgData[] }) {
                     <XAxis
                         type="number"
                         domain={[0, 100]}
-                        tick={{ fill: '#7A7488', fontSize: 11 }}
+                        tick={{ fill: '#6b6480', fontSize: 11 }}
                         axisLine={false}
                         tickLine={false}
                         tickFormatter={(v: number) => `${v}%`}
