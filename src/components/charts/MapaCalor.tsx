@@ -6,7 +6,7 @@ export interface FilaCalor { codigo: string; dmi: number; porDimension: Record<s
 /** Mapa de calor participantes × dimensiones, con la cifra escrita en cada celda. */
 export function MapaCalor({ filas }: { filas: FilaCalor[] }) {
     return (
-        <div className="overflow-x-auto rounded-md border border-border">
+        <div tabIndex={0} role="region" aria-label="Mapa de calor de participantes por dimensión" className="overflow-x-auto rounded-md border border-border">
             <table className="w-full min-w-[520px] border-separate border-spacing-[2px] text-xs">
                 <thead>
                     <tr>

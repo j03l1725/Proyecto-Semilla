@@ -37,7 +37,7 @@ export function ControlMuestra({
                     value={nuevo}
                     onChange={(e) => setNuevo(e.target.value as EstadoMuestra)}
                     disabled={ocupado}
-                    className="h-9 rounded-md border border-input bg-white px-2 text-sm"
+                    className="h-11 rounded-md border border-input bg-white px-2 text-sm"
                 >
                     {ESTADOS_MUESTRA.map((e) => (
                         <option key={e} value={e}>{ROTULO_ESTADO[e].marca} {ROTULO_ESTADO[e].texto}</option>
@@ -47,7 +47,7 @@ export function ControlMuestra({
                     type="button"
                     onClick={guardar}
                     disabled={ocupado || !cambio || falta}
-                    className="h-9 rounded-md bg-naranja-500 px-3 text-sm font-semibold text-morado-950 hover:bg-naranja-400 disabled:bg-morado-100 disabled:text-[#6b6480]"
+                    className="h-11 rounded-md bg-naranja-500 px-3 text-sm font-semibold text-morado-950 hover:bg-naranja-400 disabled:bg-morado-100 disabled:text-[#6b6480]"
                 >
                     {ocupado ? 'Guardando…' : 'Guardar'}
                 </button>
@@ -59,7 +59,7 @@ export function ControlMuestra({
                 onChange={(e) => setTexto(e.target.value)}
                 maxLength={500}
                 disabled={ocupado}
-                className="h-9 rounded-md border border-input bg-white px-2 text-sm"
+                className="h-11 rounded-md border border-input bg-white px-2 text-sm"
             />
             {falta ? <p className="text-xs text-naranja-700">Escribe el motivo para excluir.</p> : null}
             {mensaje ? (

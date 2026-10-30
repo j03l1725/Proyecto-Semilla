@@ -39,9 +39,17 @@ export function Caja({
 }
 
 /** Tabla que hace scroll dentro de su caja, nunca en la página. */
-export function TablaCaja({ children, minimo = 560 }: { children: React.ReactNode; minimo?: number }) {
+export function TablaCaja({
+    children,
+    minimo = 560,
+    etiqueta = 'Tabla',
+}: {
+    children: React.ReactNode
+    minimo?: number
+    etiqueta?: string
+}) {
     return (
-        <div className="overflow-x-auto rounded-md border border-border bg-white">
+        <div tabIndex={0} role="region" aria-label={etiqueta} className="overflow-x-auto rounded-md border border-border bg-white">
             <table className="w-full text-sm" style={{ minWidth: minimo }}>
                 {children}
             </table>

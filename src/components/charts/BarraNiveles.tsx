@@ -3,7 +3,7 @@ import { n1 } from '@/lib/panel'
 
 const ESTILO: Record<string, { fondo: string; texto: string }> = {
     Incipiente: { fondo: '#ddd3ec', texto: '#1b1826' },
-    'Transición': { fondo: '#8570b8', texto: '#ffffff' },
+    'Transición': { fondo: '#6c55a2', texto: '#ffffff' },
     Consolidado: { fondo: '#3c235f', texto: '#ffffff' },
 }
 

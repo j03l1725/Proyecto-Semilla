@@ -20,7 +20,7 @@ export function Navegacion({ pendientes }: { pendientes: number }) {
                     <li key={s.id} className="shrink-0">
                         <a
                             href={`#${s.id}`}
-                            className="block rounded-md px-3 py-2 text-sm font-medium text-morado-700 hover:bg-morado-100 focus-visible:outline-2 focus-visible:outline-morado-500 whitespace-nowrap"
+                            className="flex items-center min-h-11 rounded-md px-3 text-sm font-medium text-morado-700 hover:bg-morado-100 focus-visible:outline-2 focus-visible:outline-morado-500 whitespace-nowrap"
                         >
                             {s.rotulo}
                             {s.id === 'calidad' && pendientes > 0 ? (

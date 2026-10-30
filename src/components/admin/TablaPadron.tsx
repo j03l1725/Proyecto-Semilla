@@ -22,7 +22,7 @@ export function TablaPadron({ filas }: { filas: FilaPadron[] }) {
                 <select
                     value={filtro}
                     onChange={(e) => setFiltro(e.target.value as 'todos' | EstadoPadron)}
-                    className="h-9 rounded-md border border-input bg-white px-2 text-sm"
+                    className="h-11 rounded-md border border-input bg-white px-2 text-sm"
                 >
                     <option value="todos">Todos ({filas.length})</option>
                     {ESTADOS_PADRON.map((e) => (
@@ -31,7 +31,7 @@ export function TablaPadron({ filas }: { filas: FilaPadron[] }) {
                 </select>
                 <span className="text-[#6b6480]">Se muestran {visibles.length}.</span>
             </label>
-            <TablaCaja minimo={640}>
+            <TablaCaja minimo={640} etiqueta="Padrón de participantes">
                 <thead>
                     <tr>
                         <th className={TH}>Nombre</th>

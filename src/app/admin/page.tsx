@@ -67,7 +67,7 @@ export default async function AdminDashboardPage() {
                 <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex items-center gap-5">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/uti-oscuro-con-nombre.png" alt="Universidad Indoamérica" className="h-9 w-auto print:hidden" />
+                        <img src="/uti-oscuro-con-nombre.png" alt="Universidad Indoamérica" width={153} height={36} fetchPriority="high" className="h-9 w-auto print:hidden" />
                         <div className="h-9 w-px bg-white/20 hidden sm:block print:hidden" />
                         <div>
                             <h1 className="text-2xl font-bold text-white print:text-black tracking-tight">Panel de investigación</h1>
@@ -75,7 +75,7 @@ export default async function AdminDashboardPage() {
                         </div>
                     </div>
                     <form action={logoutAdmin} className="print:hidden">
-                        <Button variant="outline" className="bg-transparent border-white/25 text-white hover:bg-naranja-500 hover:text-morado-950 hover:border-naranja-500">
+                        <Button variant="outline" className="h-11 bg-transparent border-white/25 text-white hover:bg-naranja-500 hover:text-morado-950 hover:border-naranja-500">
                             Cerrar sesión
                         </Button>
                     </form>
@@ -145,10 +145,10 @@ export default async function AdminDashboardPage() {
 
                         <div className="flex flex-wrap gap-3 print:hidden">
                             <a href="/api/export" download>
-                                <Button size="sm" variant="outline"><Download className="h-4 w-4 mr-2" /> Exportación completa (CSV)</Button>
+                                <Button variant="outline" className="h-11"><Download className="h-4 w-4 mr-2" /> Exportación completa (CSV)</Button>
                             </a>
                             <a href="/api/export?anonima=1" download>
-                                <Button size="sm" variant="outline"><Download className="h-4 w-4 mr-2" /> Exportación anónima (CSV)</Button>
+                                <Button variant="outline" className="h-11"><Download className="h-4 w-4 mr-2" /> Exportación anónima (CSV)</Button>
                             </a>
                         </div>
                     </Seccion>
@@ -172,7 +172,7 @@ export default async function AdminDashboardPage() {
                             <Caja titulo="Media por dimensión (0-100)" className="max-w-2xl">
                                 <PuntosDimension datos={m.porDimension} />
                             </Caja>
-                            <TablaCaja minimo={520}>
+                            <TablaCaja minimo={520} etiqueta="Estadísticas por dimensión">
                                 <thead>
                                     <tr>
                                         <th className={TH}>Dimensión</th>
@@ -207,7 +207,7 @@ export default async function AdminDashboardPage() {
                             <ItemsApilados datos={m.distribucionItems} />
                         </Caja>
                         <Caja titulo="Los diez ítems más críticos">
-                            <TablaCaja minimo={560}>
+                            <TablaCaja minimo={560} etiqueta="Los diez ítems más críticos">
                                 <thead>
                                     <tr>
                                         <th className={TH}>Ítem</th>
@@ -237,7 +237,7 @@ export default async function AdminDashboardPage() {
                     <Seccion id="perfiles" titulo="Perfiles" descripcion="Cada fila es un emprendimiento con código anónimo, ordenado del DMI más alto al más bajo. Más oscuro, mayor madurez.">
                         <MapaCalor filas={perfiles} />
                         <Caja titulo="Por sector">
-                            <TablaCaja minimo={460}>
+                            <TablaCaja minimo={460} etiqueta="Reparto por sector">
                                 <thead>
                                     <tr>
                                         <th className={TH}>Sector</th>
@@ -307,7 +307,7 @@ export default async function AdminDashboardPage() {
                                                     {fechaCorta(e.createdAt)} · DMI {n1(e.dmi)} · {e.level}
                                                 </p>
                                                 {e.motivoMuestra ? <p className="text-xs text-[#6b6480] mt-1 max-w-md">{e.motivoMuestra}</p> : null}
-                                                <Link href={`/admin/${e.id}`} className="text-xs text-morado-600 underline">Ver detalle</Link>
+                                                <Link href={`/admin/${e.id}`} className="inline-flex items-center min-h-11 text-sm text-morado-600 underline">Ver detalle</Link>
                                             </div>
                                             <ControlMuestra assessmentId={e.id} estado={e.estadoMuestra} motivo={e.motivoMuestra} />
                                         </li>
@@ -331,7 +331,7 @@ export default async function AdminDashboardPage() {
                             )}
                         </Caja>
 
-                        <TablaCaja minimo={880}>
+                        <TablaCaja minimo={880} etiqueta="Todas las evaluaciones">
                             <thead>
                                 <tr>
                                     <th className={TH}>Emprendimiento</th>
@@ -349,7 +349,7 @@ export default async function AdminDashboardPage() {
                                     return (
                                         <tr key={e.id}>
                                             <td className={TD}>
-                                                <Link href={`/admin/${e.id}`} className="text-morado-700 underline underline-offset-2">{e.companyName}</Link>
+                                                <Link href={`/admin/${e.id}`} className="inline-flex items-center min-h-11 min-w-11 text-morado-700 underline underline-offset-2">{e.companyName}</Link>
                                             </td>
                                             <td className={`${TD} font-mono text-[11px] text-[#6b6480]`}>{reportCode(e.id, e.createdAt)}</td>
                                             <td className={`${TD} text-xs whitespace-nowrap`}>{fechaCorta(e.createdAt)}</td>
@@ -362,7 +362,7 @@ export default async function AdminDashboardPage() {
                                             <td className={`${TD} text-xs text-[#5a5566] max-w-[260px]`}>{e.motivoMuestra ?? '—'}</td>
                                             <td className={`${TD} print:hidden`}>
                                                 <details>
-                                                    <summary className="cursor-pointer text-sm text-morado-700 underline underline-offset-2">Cambiar estado</summary>
+                                                    <summary className="cursor-pointer inline-flex items-center min-h-11 text-sm text-morado-700 underline underline-offset-2">Cambiar estado</summary>
                                                     <div className="mt-2">
                                                         <ControlMuestra assessmentId={e.id} estado={e.estadoMuestra} motivo={e.motivoMuestra} />
                                                     </div>

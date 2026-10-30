@@ -6,7 +6,7 @@ const TRAMA_CERO =
 
 const SEG = [
     { clave: 'n0' as const, nombre: '0 · No lo hace', fondo: TRAMA_CERO, texto: '#1b1826' },
-    { clave: 'n1' as const, nombre: '1 · A medias', fondo: '#8570b8', texto: '#ffffff' },
+    { clave: 'n1' as const, nombre: '1 · A medias', fondo: '#6c55a2', texto: '#ffffff' },
     { clave: 'n2' as const, nombre: '2 · Sí lo hace', fondo: '#3c235f', texto: '#ffffff' },
 ]
 
