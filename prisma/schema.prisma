@@ -18,8 +18,13 @@ model Company {
   city        String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  /// Categoría cerrada de actividad (el campo sector queda con el mismo valor).
+  sectorCodigo    String?
+  /// Momento en que se aceptó el consentimiento, con la hora del servidor.
+  consentimientoAt DateTime?
 
-  assessments Assessment[]
+  assessments   Assessment[]
+  participantes Participante[]
 }
 
 model Dimension {
@@ -57,6 +62,9 @@ model Assessment {
   totalScore  Int      @default(0)
   level       String?  // Incipiente, Transición, Consolidado
   createdAt   DateTime @default(now())
+  /// 'oficial' | 'pendiente' | 'excluida'
+  estadoMuestra String  @default("pendiente")
+  motivoMuestra String?
   
   company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   answers     AssessmentAnswer[]
@@ -73,4 +81,20 @@ model AssessmentAnswer {
   option       Option     @relation(fields: [optionId], references: [id], onDelete: Cascade)
 
   @@unique([assessmentId, questionId])
+}
+
+/// Padrón de la sesión: quién estaba en el listado y quién firmó asistencia.
+model Participante {
+  id                 String   @id @default(uuid())
+  nombre             String
+  enListado          Boolean
+  filaAsistencia     Int?
+  genero             String?
+  autoidentificacion String?
+  institucion        String?
+  /// 'emprendedor' | 'equipo-uti' | 'aliado'
+  rol                String
+  companyId          String?
+
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 }
