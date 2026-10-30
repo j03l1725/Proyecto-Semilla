@@ -66,7 +66,7 @@ reporte cae en la recomendación genérica de la dimensión sin avisar de nada.
 | Despliegue | Base de datos | Uso |
 |---|---|---|
 | `semilla.indoamericatech.com` | Postgres propio en el VPS | ★ El enlace citado en el artículo del TICEC desde la versión final del 2026-08-30. Despliegue institucional |
-| `proyecto-semilla-5upp.vercel.app` | Supabase | Despliegue previo. Fue el enlace del artículo durante la revisión por pares; se mantiene en pie porque las versiones ya enviadas lo citan |
+| `proyecto-semilla-5upp.vercel.app` | Supabase | Despliegue previo. Fue el enlace del artículo durante la revisión por pares. Desde el 2026-10-30 redirige con 308 a la URL oficial y ya no recoge datos. |
 
 No comparten datos: un diagnóstico creado en uno no existe en el otro. Ambos se
 despliegan solos con un `push` a `main` —Vercel por su integración con Git, el
