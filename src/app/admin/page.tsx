@@ -139,7 +139,7 @@ export default async function AdminDashboardPage() {
                             <Tarjeta
                                 titulo="Ítem más crítico"
                                 valor={critico ? `${critico.codigo} · ${n1(critico.media, 2)}` : '—'}
-                                pie={critico ? `${critico.etiqueta}: ${critico.pctEnCero} % respondió 0 (media sobre 2)` : 'Sin datos'}
+                                pie={critico ? `${critico.etiqueta}: ${n1(critico.pctEnCero)} % respondió 0 (media sobre 2)` : 'Sin datos'}
                             />
                             <Tarjeta titulo="Respuestas en 0 y en 2" valor={`${n1(m.pctRespuestasEnCero)} % · ${n1(m.pctRespuestasEnDos)} %`} pie="Del total de respuestas de la muestra" />
                         </div>

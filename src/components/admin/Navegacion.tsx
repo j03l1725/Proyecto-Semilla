@@ -21,10 +21,14 @@ export function Navegacion({ pendientes }: { pendientes: number }) {
 
     useEffect(() => {
         const secciones = SECCIONES.map((s) => document.getElementById(s.id)).filter((e): e is HTMLElement => !!e)
+        // El observador solo avisa de lo que cambió: la activa sale del conjunto
+        // completo de visibles, y si hay varias, de la primera en el orden del panel.
+        const visibles = new Set<string>()
         const obs = new IntersectionObserver(
             (entradas) => {
-                const visibles = entradas.filter((e) => e.isIntersecting)
-                if (visibles.length) setActiva(visibles[0].target.id)
+                entradas.forEach((e) => (e.isIntersecting ? visibles.add(e.target.id) : visibles.delete(e.target.id)))
+                const primera = SECCIONES.find((s) => visibles.has(s.id))
+                if (primera) setActiva(primera.id)
             },
             { rootMargin: '-10% 0px -70% 0px' }
         )

@@ -198,6 +198,8 @@ export function alfaDeCronbach(filas: number[][]): number | null {
 }
 
 const r1 = (x: number) => Math.round(x * 10) / 10
+/** Las medias de ítem van en escala 0-2: con un decimal se confunden 0,17 y 0,25. */
+const r2 = (x: number) => Math.round(x * 100) / 100
 const r3 = (x: number) => Math.round(x * 1000) / 1000
 
 /** Agrupa por una clave de texto; los vacíos van a `sinDato`. */
@@ -285,7 +287,7 @@ export function calcularMetricas(crudas: EvaluacionCruda[]): Metricas {
             n0: pesos.filter((w) => w === 0).length,
             n1: pesos.filter((w) => w === 1).length,
             n2: pesos.filter((w) => w === 2).length,
-            media: r1(media(pesos)),
+            media: r2(media(pesos)),
         }
     })
 
@@ -339,7 +341,7 @@ export function calcularMetricas(crudas: EvaluacionCruda[]): Metricas {
                 codigo,
                 etiqueta: v.etiqueta,
                 dimension: v.dimension,
-                media: r1(media(v.pesos)),
+                media: r2(media(v.pesos)),
                 enCero,
                 pctEnCero: v.pesos.length ? r1((enCero / v.pesos.length) * 100) : 0,
             }

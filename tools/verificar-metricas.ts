@@ -29,6 +29,14 @@ async function main() {
 
     const casos: Caso[] = [
         { clave: 'n', nombre: 'n de la muestra', esperado: 24, obtenido: m.n },
+        { clave: 'itemD61', nombre: 'media D6.1', esperado: 0.17, obtenido: m.itemsCriticos.find((i) => i.codigo === 'D6.1')?.media ?? -1 },
+        { clave: 'itemD12', nombre: 'media D1.2', esperado: 0.63, obtenido: m.distribucionItems.find((i) => i.codigo === 'D1.2')?.media ?? -1 },
+        {
+            clave: 'itemsOrden',
+            nombre: 'ítems críticos en orden de media',
+            esperado: 'ordenado',
+            obtenido: m.itemsCriticos.every((it, i, l) => i === 0 || l[i - 1].media <= it.media) ? 'ordenado' : 'desordenado',
+        },
         { clave: 'dmiMedio', nombre: 'DMI media', esperado: 18.8, obtenido: m.dmiMedio },
         { clave: 'dmiMediana', nombre: 'DMI mediana', esperado: 17.2, obtenido: m.dmiMediana },
         { clave: 'dmiDE', nombre: 'DMI desviación', esperado: 13.3, obtenido: m.dmiDesviacion },
