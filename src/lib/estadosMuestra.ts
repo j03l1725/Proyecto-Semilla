@@ -8,3 +8,10 @@ export const ROTULO_ESTADO: Record<EstadoMuestra, { texto: string; marca: string
     pendiente: { texto: 'Pendiente', marca: '○' },
     excluida: { texto: 'Excluida', marca: '✗' },
 }
+
+const DOMINIOS_FICTICIOS = /@(example\.(com|org|net)|test\.|ejemplo\.|prueba\.|mailinator\.|fake\.|asdf\.|correo\.com$|mail\.com$|x\.com$)/i
+
+/** Nombre o correo que parecen de una prueba y no de un emprendimiento. */
+export function pareceDatoDePrueba(nombre: string, contacto: string, correo: string): boolean {
+    return [nombre, contacto, correo].some((c) => /prueba/i.test(c)) || DOMINIOS_FICTICIOS.test(correo)
+}

@@ -10,6 +10,7 @@ import { Seccion, Caja, TablaCaja, TH, TD } from '@/components/admin/Seccion'
 import { Navegacion } from '@/components/admin/Navegacion'
 import { ControlMuestra } from '@/components/admin/ControlMuestra'
 import { TablaPadron } from '@/components/admin/TablaPadron'
+import { VincularParticipante } from '@/components/admin/VincularParticipante'
 import { RegistrosEvaluaciones } from '@/components/admin/RegistrosEvaluaciones'
 import { calcularMetricas, revisionCalidad, META_MUESTRA, type TipoAviso } from '@/lib/metricas'
 import { cargarCrudas } from '@/lib/cargarEvaluaciones'
@@ -59,6 +60,14 @@ export default async function AdminDashboardPage() {
     const porContactar = padron.filter(
         (f) => f.rol === 'emprendedor' && f.enListado && (f.estado === 'Sin registro' || f.estado === 'Registrado sin diagnóstico')
     )
+    // Quien firmó y subió datos sin estar en el listado se usa, y queda aquí para verificar su situación.
+    const fueraDelPadron = padron.filter(
+        (f) => f.rol === 'emprendedor' && !f.enListado && (f.estado === 'Oficial' || f.estado === 'Pendiente')
+    )
+    const vinculadas = new Set(padron.map((f) => f.companyId))
+    const sinVinculo = m.muestra.filter((e) => !vinculadas.has(e.companyId))
+    const opcionesVinculo = porContactar.map((f) => ({ id: f.id, nombre: f.nombre }))
+    const nFuera = fueraDelPadron.length + sinVinculo.length
     const auto = autoidentificacionAgregada(padron)
 
     return (
@@ -114,7 +123,7 @@ export default async function AdminDashboardPage() {
                                 etapas={[
                                     { rotulo: 'En el listado', n: emb.listado },
                                     { rotulo: 'Registrados en la plataforma', n: emb.registrados },
-                                    { rotulo: 'Con diagnóstico oficial', n: emb.oficiales, detalle: m.n !== emb.oficiales ? `(la muestra tiene ${m.n}: ${m.n - emb.oficiales} sin vincular al listado)` : undefined },
+                                    { rotulo: 'Con diagnóstico oficial', n: emb.oficiales, detalle: m.n !== emb.oficiales ? `(la muestra tiene ${m.n}: ${m.n - emb.oficiales} fuera del listado)` : undefined },
                                     { rotulo: 'Con diagnóstico pendiente', n: emb.pendientes },
                                 ]}
                             />
@@ -287,6 +296,35 @@ export default async function AdminDashboardPage() {
                                                 {f.telefono ? ` · ${f.telefono}` : ''}
                                                 {f.firmo ? ' · firmó la asistencia' : ' · no firmó'}
                                             </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </Caja>
+                        <Caja titulo={`Fuera del listado, por verificar (${nFuera})`}>
+                            <p className="text-sm text-[#5a5566] mb-2">
+                                Sus datos cuentan en la muestra. Falta verificar su situación y ver cómo se incluyen.
+                            </p>
+                            {nFuera === 0 ? (
+                                <p className="text-sm text-[#5a5566]">No hay nadie fuera del listado.</p>
+                            ) : (
+                                <ul className="divide-y divide-border text-sm">
+                                    {fueraDelPadron.map((f) => (
+                                        <li key={f.id} className="py-2 flex flex-wrap justify-between gap-x-4 gap-y-0.5">
+                                            <span className="text-tinta">{f.nombre}</span>
+                                            <span className="text-[#5a5566] text-xs">
+                                                {f.emprendimiento ?? 'Sin emprendimiento'}
+                                                {f.firmo ? ' · firmó la asistencia' : ' · no firmó'}
+                                            </span>
+                                        </li>
+                                    ))}
+                                    {sinVinculo.map((e) => (
+                                        <li key={e.id} className="py-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                                            <span className="text-tinta">
+                                                {e.contactName ?? e.companyName}
+                                                <span className="block text-xs text-[#5a5566]">{e.companyName} · no está ligada al padrón</span>
+                                            </span>
+                                            <VincularParticipante companyId={e.companyId} contacto={e.contactName ?? ''} opciones={opcionesVinculo} />
                                         </li>
                                     ))}
                                 </ul>

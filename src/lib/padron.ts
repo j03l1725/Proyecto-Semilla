@@ -25,6 +25,7 @@ export async function cargarPadron(): Promise<FilaPadron[]> {
         return {
             id: p.id,
             nombre: p.nombre,
+            companyId: p.companyId,
             enListado: p.enListado,
             firmo: p.filaAsistencia !== null,
             rol: p.rol,

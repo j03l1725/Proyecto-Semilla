@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma'
 import { computeAssessmentResult } from '@/lib/scoring'
+import { pareceDatoDePrueba } from '@/lib/estadosMuestra'
 
 // Función para obtener todo el cuestionario con sus opciones
 export async function getQuestions() {
@@ -75,6 +76,13 @@ export async function submitAssessment(companyId: string, selectedOptions: strin
         const totalScore = scoreResult.totalRawScore
         const level = scoreResult.level
 
+        // Las pruebas del equipo fueron anteriores a la sesión del 2026-10-29: desde
+        // entonces todo diagnóstico es real y cuenta en la muestra. Solo lo que parece
+        // una prueba queda pendiente de revisar, para no contaminar las cifras.
+        const empresa = await prisma.company.findUnique({ where: { id: companyId } })
+        const estadoMuestra =
+            empresa && pareceDatoDePrueba(empresa.name, empresa.contactName, empresa.email) ? 'pendiente' : 'oficial'
+
         // 3. Guardar todo en una transacción para asegurar consistencia
         const result = await prisma.$transaction(async (tx) => {
 
@@ -90,7 +98,8 @@ export async function submitAssessment(companyId: string, selectedOptions: strin
                 data: {
                     companyId,
                     totalScore,
-                    level
+                    level,
+                    estadoMuestra
                 }
             })
 

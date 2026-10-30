@@ -4,7 +4,7 @@
  *   DATABASE_URL=postgresql://... npx ts-node --compiler-options '{"module":"CommonJS"}' tools/verificar-metricas.ts
  *
  * Sale con código 1 si alguna cifra no coincide con la esperada. Los valores
- * esperados son los de la muestra del 2026-10-29 (n = 24). Para ver que la
+ * esperados son los de la muestra desde la sesión del 2026-10-29 (n = 25). Para ver que la
  * prueba puede fallar, `VERIFICAR_ALTERAR=dmiMedio` suma 1 al esperado de esa
  * cifra y debe salir rojo.
  */
@@ -28,36 +28,36 @@ async function main() {
     const nivel = (n: string) => m.porNivel.find((x) => x.clave === n)?.n ?? null
 
     const casos: Caso[] = [
-        { clave: 'n', nombre: 'n de la muestra', esperado: 24, obtenido: m.n },
-        { clave: 'itemD61', nombre: 'media D6.1', esperado: 0.17, obtenido: m.itemsCriticos.find((i) => i.codigo === 'D6.1')?.media ?? -1 },
-        { clave: 'itemD12', nombre: 'media D1.2', esperado: 0.63, obtenido: m.distribucionItems.find((i) => i.codigo === 'D1.2')?.media ?? -1 },
+        { clave: 'n', nombre: 'n de la muestra', esperado: 25, obtenido: m.n },
+        { clave: 'itemD61', nombre: 'media D6.1', esperado: 0.2, obtenido: m.itemsCriticos.find((i) => i.codigo === 'D6.1')?.media ?? -1 },
+        { clave: 'itemD12', nombre: 'media D1.2', esperado: 0.68, obtenido: m.distribucionItems.find((i) => i.codigo === 'D1.2')?.media ?? -1 },
         {
             clave: 'itemsOrden',
             nombre: 'ítems críticos en orden de media',
             esperado: 'ordenado',
             obtenido: m.itemsCriticos.every((it, i, l) => i === 0 || l[i - 1].media <= it.media) ? 'ordenado' : 'desordenado',
         },
-        { clave: 'dmiMedio', nombre: 'DMI media', esperado: 18.8, obtenido: m.dmiMedio },
-        { clave: 'dmiMediana', nombre: 'DMI mediana', esperado: 17.2, obtenido: m.dmiMediana },
-        { clave: 'dmiDE', nombre: 'DMI desviación', esperado: 13.3, obtenido: m.dmiDesviacion },
+        { clave: 'dmiMedio', nombre: 'DMI media', esperado: 19.3, obtenido: m.dmiMedio },
+        { clave: 'dmiMediana', nombre: 'DMI mediana', esperado: 18.8, obtenido: m.dmiMediana },
+        { clave: 'dmiDE', nombre: 'DMI desviación', esperado: 13.2, obtenido: m.dmiDesviacion },
         { clave: 'dmiMin', nombre: 'DMI mínimo', esperado: 2.8, obtenido: r1(m.dmiMin) },
         { clave: 'dmiMax', nombre: 'DMI máximo', esperado: 42.8, obtenido: r1(m.dmiMax) },
-        { clave: 'icInf', nombre: 'IC95 inferior', esperado: 13.2, obtenido: m.dmiIC95?.inferior ?? null },
-        { clave: 'icSup', nombre: 'IC95 superior', esperado: 24.4, obtenido: m.dmiIC95?.superior ?? null },
-        { clave: 't24', nombre: 't crítico para n = 24', esperado: 2.069, obtenido: tCritico95(23), tolerancia: 0.002 },
-        { clave: 'incipiente', nombre: 'Nivel Incipiente', esperado: 19, obtenido: nivel('Incipiente') },
+        { clave: 'icInf', nombre: 'IC95 inferior', esperado: 13.9, obtenido: m.dmiIC95?.inferior ?? null },
+        { clave: 'icSup', nombre: 'IC95 superior', esperado: 24.8, obtenido: m.dmiIC95?.superior ?? null },
+        { clave: 't25', nombre: 't crítico para n = 25', esperado: 2.064, obtenido: tCritico95(24), tolerancia: 0.002 },
+        { clave: 'incipiente', nombre: 'Nivel Incipiente', esperado: 20, obtenido: nivel('Incipiente') },
         { clave: 'transicion', nombre: 'Nivel Transición', esperado: 5, obtenido: nivel('Transición') },
         { clave: 'consolidado', nombre: 'Nivel Consolidado', esperado: 0, obtenido: nivel('Consolidado') },
-        { clave: 'procesos', nombre: 'Dimensión Procesos', esperado: 9.7, obtenido: dim('Procesos') },
-        { clave: 'datos', nombre: 'Dimensión Datos', esperado: 14.6, obtenido: dim('Datos') },
-        { clave: 'estrategia', nombre: 'Dimensión Estrategia', esperado: 18.3, obtenido: dim('Estrategia') },
-        { clave: 'organizacion', nombre: 'Dimensión Organización', esperado: 18.8, obtenido: dim('Organización') },
-        { clave: 'tecnologias', nombre: 'Dimensión Tecnologías', esperado: 24.3, obtenido: dim('Tecnologías') },
-        { clave: 'comunicaciones', nombre: 'Dimensión Comunicaciones', esperado: 27.1, obtenido: dim('Comunicaciones') },
-        { clave: 'alfa', nombre: 'Alfa de Cronbach, 21 ítems', esperado: 0.87, obtenido: m.alfaCronbach, tolerancia: 0.0005 },
-        { clave: 'pctCero', nombre: '% de respuestas en 0', esperado: 64.7, obtenido: m.pctRespuestasEnCero },
-        { clave: 'pctDos', nombre: '% de respuestas en 2', esperado: 2.2, obtenido: m.pctRespuestasEnDos },
-        { clave: 'pendientes', nombre: 'Evaluaciones pendientes', esperado: 1, obtenido: m.nPendientes },
+        { clave: 'procesos', nombre: 'Dimensión Procesos', esperado: 11.3, obtenido: dim('Procesos') },
+        { clave: 'datos', nombre: 'Dimensión Datos', esperado: 14.7, obtenido: dim('Datos') },
+        { clave: 'estrategia', nombre: 'Dimensión Estrategia', esperado: 19.2, obtenido: dim('Estrategia') },
+        { clave: 'organizacion', nombre: 'Dimensión Organización', esperado: 18, obtenido: dim('Organización') },
+        { clave: 'tecnologias', nombre: 'Dimensión Tecnologías', esperado: 26, obtenido: dim('Tecnologías') },
+        { clave: 'comunicaciones', nombre: 'Dimensión Comunicaciones', esperado: 26.7, obtenido: dim('Comunicaciones') },
+        { clave: 'alfa', nombre: 'Alfa de Cronbach, 21 ítems', esperado: 0.866, obtenido: m.alfaCronbach, tolerancia: 0.0005 },
+        { clave: 'pctCero', nombre: '% de respuestas en 0', esperado: 63.8, obtenido: m.pctRespuestasEnCero },
+        { clave: 'pctDos', nombre: '% de respuestas en 2', esperado: 2.3, obtenido: m.pctRespuestasEnDos },
+        { clave: 'pendientes', nombre: 'Evaluaciones pendientes', esperado: 0, obtenido: m.nPendientes },
         { clave: 'excluidas', nombre: 'Evaluaciones excluidas', esperado: 9, obtenido: m.nExcluidas },
     ]
 

@@ -6,6 +6,10 @@ import prisma from '@/lib/prisma'
 import { ADMIN_COOKIE, verifySessionToken } from '@/lib/adminSession'
 import { ESTADOS_MUESTRA } from '@/lib/estadosMuestra'
 
+async function sesionValida() {
+    return verifySessionToken((await cookies()).get(ADMIN_COOKIE)?.value)
+}
+
 /**
  * Cambia el estado de una evaluación dentro de la muestra.
  *
@@ -13,8 +17,7 @@ import { ESTADOS_MUESTRA } from '@/lib/estadosMuestra'
  * así que la sesión se valida aquí dentro. Excluir exige un motivo escrito.
  */
 export async function marcarMuestra(assessmentId: string, estado: string, motivo?: string) {
-    const token = (await cookies()).get(ADMIN_COOKIE)?.value
-    if (!(await verifySessionToken(token))) {
+    if (!(await sesionValida())) {
         return { success: false, error: 'No autorizado.' }
     }
 
@@ -39,6 +42,23 @@ export async function marcarMuestra(assessmentId: string, estado: string, motivo
         return { success: false, error: 'No se encontró la evaluación.' }
     }
 
+    revalidatePath('/admin')
+    return { success: true }
+}
+
+/** Liga a una persona del padrón con el emprendimiento que registró. */
+export async function vincularParticipante(participanteId: string, companyId: string) {
+    if (!(await sesionValida())) {
+        return { success: false, error: 'No autorizado.' }
+    }
+    if (!participanteId || !companyId) {
+        return { success: false, error: 'Falta elegir a la persona.' }
+    }
+    try {
+        await prisma.participante.update({ where: { id: participanteId }, data: { companyId } })
+    } catch {
+        return { success: false, error: 'No se pudo vincular.' }
+    }
     revalidatePath('/admin')
     return { success: true }
 }

@@ -24,6 +24,7 @@
  */
 
 import { computeAssessmentResult, DIMENSION_ORDER, type MaturityLevel, type ScoringAnswer } from './scoring'
+import { pareceDatoDePrueba } from './estadosMuestra'
 import { buscarItem, CATALOGO } from './acciones'
 
 export interface EvaluacionCruda {
@@ -375,8 +376,6 @@ export function calcularMetricas(crudas: EvaluacionCruda[]): Metricas {
     }
 }
 
-const DOMINIOS_FICTICIOS = /@(example\.(com|org|net)|test\.|ejemplo\.|prueba\.|mailinator\.|fake\.|asdf\.|correo\.com$|mail\.com$|x\.com$)/i
-
 /**
  * Avisos de calidad sobre todas las evaluaciones. Solo informa: no cambia el
  * estado de nada. La decisión de incluir o excluir es del equipo. Las
@@ -422,8 +421,7 @@ export function revisionCalidad(todas: EvaluacionCalculada[]): AvisoCalidad[] {
 
     // 3. Nombre o correo de prueba.
     for (const e of todas) {
-        const campos = [e.companyName, e.contactName ?? '', e.companyEmail ?? '']
-        if (campos.some((c) => /prueba/i.test(c)) || DOMINIOS_FICTICIOS.test(e.companyEmail ?? ''))
+        if (pareceDatoDePrueba(e.companyName, e.contactName ?? '', e.companyEmail ?? ''))
             avisos.push({
                 tipo: 'dato-de-prueba',
                 companyId: e.companyId,
