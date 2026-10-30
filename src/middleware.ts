@@ -2,7 +2,18 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { ADMIN_COOKIE, verifySessionToken } from '@/lib/adminSession'
 
+/** Dirección antigua de la plataforma y la definitiva a la que se redirige. */
+const HOST_ANTIGUO = 'proyecto-semilla-5upp.vercel.app'
+const ORIGEN_DEFINITIVO = 'https://semilla.indoamericatech.com'
+
 export async function middleware(request: NextRequest) {
+    // La dirección de Vercel se retira: 308 conserva método, ruta y consulta.
+    const host = (request.headers.get('host') ?? '').split(':')[0].toLowerCase()
+    if (host === HOST_ANTIGUO) {
+        const destino = new URL(request.nextUrl.pathname + request.nextUrl.search, ORIGEN_DEFINITIVO)
+        return NextResponse.redirect(destino, 308)
+    }
+
     const isAdminPath = request.nextUrl.pathname.startsWith('/admin')
     const isLoginPage = request.nextUrl.pathname === '/admin/login'
 
@@ -25,5 +36,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/admin/:path*'],
+    // Todas las rutas salvo los estáticos de Next y el favicon.
+    matcher: ['/((?!_next/static|_next/image|favicon).*)'],
 }

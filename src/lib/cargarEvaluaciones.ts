@@ -26,6 +26,7 @@ export async function cargarCrudas(): Promise<EvaluacionCruda[]> {
         city: a.company.city,
         contactName: a.company.contactName,
         companyEmail: a.company.email,
+        companyPhone: a.company.phone,
         companyCreatedAt: a.company.createdAt,
         estadoMuestra: a.estadoMuestra,
         motivoMuestra: a.motivoMuestra,

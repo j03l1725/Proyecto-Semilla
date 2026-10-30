@@ -39,6 +39,7 @@ export interface EvaluacionCruda {
     /** Datos de contacto: solo los usa revisionCalidad, nunca se muestran en gráficos. */
     contactName: string | null
     companyEmail: string | null
+    companyPhone: string | null
     /** Cuándo se registró el emprendimiento (para medir cuánto tardó en enviar). */
     companyCreatedAt: Date
     estadoMuestra: string
@@ -376,10 +377,15 @@ const DOMINIOS_FICTICIOS = /@(example\.(com|org|net)|test\.|ejemplo\.|prueba\.|m
 
 /**
  * Avisos de calidad sobre todas las evaluaciones. Solo informa: no cambia el
- * estado de nada. La decisión de incluir o excluir es del equipo.
+ * estado de nada. La decisión de incluir o excluir es del equipo. Las
+ * evaluaciones ya excluidas no generan avisos.
  */
 export function revisionCalidad(todas: EvaluacionCalculada[]): AvisoCalidad[] {
     const avisos: AvisoCalidad[] = []
+    // La mediana de duración sale de la muestra completa; los avisos, solo de lo
+    // que no está ya excluido: una exclusión es una decisión tomada, no algo por revisar.
+    const todasConExcluidas = todas
+    todas = todas.filter((e) => e.estadoMuestra !== 'excluida')
 
     // 1. Repetición de un mismo emprendimiento.
     const porEmpresa = new Map<string, EvaluacionCalculada[]>()
@@ -397,7 +403,7 @@ export function revisionCalidad(todas: EvaluacionCalculada[]): AvisoCalidad[] {
 
     // 2. Envío demasiado rápido: menos de un tercio de la mediana de la muestra.
     const duracion = (e: EvaluacionCalculada) => (e.createdAt.getTime() - e.companyCreatedAt.getTime()) / 1000
-    const medianaDur = mediana(todas.filter((e) => e.enMuestra).map(duracion))
+    const medianaDur = mediana(todasConExcluidas.filter((e) => e.enMuestra).map(duracion))
     if (medianaDur > 0) {
         for (const e of todas) {
             const d = duracion(e)

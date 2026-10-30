@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 
 import { registerCompany } from '@/app/actions/company'
+import { SECTORES } from '@/lib/sectores'
 
 // Lista completa de provincias del Ecuador
 const PROVINCIAS_ECUADOR = [
@@ -39,13 +40,15 @@ const formSchema = z.object({
   contactName: z.string().min(2, {
     message: 'Tu nombre es obligatorio (mínimo 2 caracteres).',
   }),
-  email: z.string().email({
+  email: z.string().trim().email({
     message: 'Por favor ingresa un correo electrónico válido.',
   }),
   phone: z.string().min(7, {
     message: 'Ingresa un número de celular válido.',
   }),
-  sector: z.string().optional(),
+  sector: z.string().min(1, {
+    message: 'Selecciona a qué se dedica tu negocio.',
+  }),
   province: z.string().min(1, {
     message: 'Selecciona tu provincia.',
   }),
@@ -81,8 +84,8 @@ export default function Home() {
     setError(null)
 
     try {
-      const { consent: _, ...companyData } = values
-      const result = await registerCompany(companyData)
+      const { consent, ...companyData } = values
+      const result = await registerCompany({ ...companyData, consent })
 
       if (result.success && result.companyId) {
         localStorage.setItem('companyId', result.companyId)
@@ -320,18 +323,24 @@ export default function Home() {
                     />
                   </div>
 
-                  {/* Sector */}
+                  {/* Sector: lista cerrada, obligatoria */}
                   <FormField
                     control={form.control}
                     name="sector"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-morado-200 text-xs">Sector del emprendimiento (Opcional)</FormLabel>
-                        <p className="text-[11px] text-morado-200/70 leading-relaxed -mt-1 mb-1">
-                          La actividad a la que se dedica su negocio.
-                        </p>
+                        <FormLabel className="text-morado-200 text-xs">¿A qué se dedica su negocio? <span className="text-naranja-400">*</span></FormLabel>
                         <FormControl>
-                          <Input placeholder="Ej. Alimentos, Comercio, Tecnología, Servicios..." {...field} value={field.value || ''} disabled={isLoading} className={inputStyles} />
+                          <select
+                            {...field}
+                            disabled={isLoading}
+                            className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${inputStyles} ${!field.value ? 'text-morado-300/75' : 'text-white'}`}
+                          >
+                            <option value="" className="bg-morado-900">Seleccionar...</option>
+                            {SECTORES.map(sec => (
+                              <option key={sec} value={sec} className="bg-morado-900 text-white">{sec}</option>
+                            ))}
+                          </select>
                         </FormControl>
                         <FormMessage className="text-naranja-300" />
                       </FormItem>
