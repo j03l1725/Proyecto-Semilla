@@ -31,7 +31,21 @@ export function TablaPadron({ filas }: { filas: FilaPadron[] }) {
                 </select>
                 <span className="text-[#6b6480]">Se muestran {visibles.length}.</span>
             </label>
-            <TablaCaja minimo={640} etiqueta="Padrón de participantes">
+            <ul className="md:hidden space-y-2">
+                {visibles.map((f) => (
+                    <li key={f.id} className="rounded-lg border border-border bg-white p-3 text-sm">
+                        <p className="font-semibold text-tinta">{f.nombre}</p>
+                        <p className="mt-0.5">
+                            <span aria-hidden className="mr-1.5">{MARCA[f.estado]}</span>
+                            {f.estado}
+                        </p>
+                        <p className="text-xs text-[#5a5566] mt-0.5">
+                            {f.emprendimiento ?? 'Sin emprendimiento'} · {f.rol} · {f.enListado ? 'en listado' : 'fuera del listado'} · {f.firmo ? 'firmó' : 'no firmó'}
+                        </p>
+                    </li>
+                ))}
+            </ul>
+            <TablaCaja minimo={640} etiqueta="Padrón de participantes" className="hidden md:block">
                 <thead>
                     <tr>
                         <th className={TH}>Nombre</th>

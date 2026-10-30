@@ -16,6 +16,11 @@ export function Seccion({
                 {descripcion ? <p className="text-sm text-[#5a5566] mt-1 max-w-3xl">{descripcion}</p> : null}
             </div>
             {children}
+            <p className="print:hidden lg:hidden">
+                <a href="#indice" className="inline-flex items-center min-h-11 text-sm text-morado-700 underline underline-offset-2">
+                    ↑ Volver a las secciones
+                </a>
+            </p>
         </section>
     )
 }
@@ -43,13 +48,15 @@ export function TablaCaja({
     children,
     minimo = 560,
     etiqueta = 'Tabla',
+    className = '',
 }: {
     children: React.ReactNode
     minimo?: number
     etiqueta?: string
+    className?: string
 }) {
     return (
-        <div tabIndex={0} role="region" aria-label={etiqueta} className="overflow-x-auto rounded-md border border-border bg-white">
+        <div tabIndex={0} role="region" aria-label={etiqueta} className={`overflow-x-auto rounded-md border border-border bg-white ${className}`}>
             <table className="w-full text-sm" style={{ minWidth: minimo }}>
                 {children}
             </table>

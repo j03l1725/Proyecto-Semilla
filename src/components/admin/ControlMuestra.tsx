@@ -9,16 +9,19 @@ export function ControlMuestra({
     assessmentId,
     estado,
     motivo,
+    bandeja = false,
 }: {
     assessmentId: string
     estado: string
     motivo: string | null
+    /** En la bandeja de pendientes se parte de “Oficial” y el motivo en blanco: la nota automática ya se ve arriba. */
+    bandeja?: boolean
 }) {
-    const [nuevo, setNuevo] = useState<EstadoMuestra>((ESTADOS_MUESTRA as readonly string[]).includes(estado) ? (estado as EstadoMuestra) : 'pendiente')
-    const [texto, setTexto] = useState(motivo ?? '')
+    const [nuevo, setNuevo] = useState<EstadoMuestra>(bandeja ? 'oficial' : (ESTADOS_MUESTRA as readonly string[]).includes(estado) ? (estado as EstadoMuestra) : 'pendiente')
+    const [texto, setTexto] = useState(bandeja ? '' : (motivo ?? ''))
     const [mensaje, setMensaje] = useState<{ ok: boolean; texto: string } | null>(null)
     const [ocupado, empezar] = useTransition()
-    const cambio = nuevo !== estado || (texto.trim() || null) !== (motivo ?? null)
+    const cambio = bandeja || nuevo !== estado || (texto.trim() || null) !== (motivo ?? null)
     const falta = nuevo === 'excluida' && texto.trim().length < 3
 
     function guardar() {

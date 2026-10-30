@@ -10,10 +10,10 @@ import { Seccion, Caja, TablaCaja, TH, TD } from '@/components/admin/Seccion'
 import { Navegacion } from '@/components/admin/Navegacion'
 import { ControlMuestra } from '@/components/admin/ControlMuestra'
 import { TablaPadron } from '@/components/admin/TablaPadron'
+import { RegistrosEvaluaciones } from '@/components/admin/RegistrosEvaluaciones'
 import { calcularMetricas, revisionCalidad, META_MUESTRA, type TipoAviso } from '@/lib/metricas'
 import { cargarCrudas } from '@/lib/cargarEvaluaciones'
 import { cargarPadron, embudo, autoidentificacionAgregada } from '@/lib/padron'
-import { ROTULO_ESTADO, type EstadoMuestra } from '@/lib/estadosMuestra'
 import { corta, fechaCorta, n1 } from '@/lib/panel'
 import { reportCode } from '@/lib/reporte'
 import { logoutAdmin } from '@/app/actions/auth'
@@ -63,15 +63,15 @@ export default async function AdminDashboardPage() {
 
     return (
         <div className="min-h-screen bg-morado-50">
-            <header className="bg-[linear-gradient(100deg,#3c235f_0%,#241348_55%,#2c1852_100%)] px-4 sm:px-6 md:px-10 py-5 print:bg-white print:px-0">
-                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="flex items-center gap-5">
+            <header className="bg-[linear-gradient(100deg,#3c235f_0%,#241348_55%,#2c1852_100%)] px-4 sm:px-6 md:px-10 py-5 print:bg-none print:bg-white print:px-0">
+                <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-x-6 gap-y-3">
+                    <div className="flex items-center gap-4">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src="/uti-oscuro-con-nombre.png" alt="Universidad Indoamérica" width={153} height={36} fetchPriority="high" className="h-9 w-auto print:hidden" />
                         <div className="h-9 w-px bg-white/20 hidden sm:block print:hidden" />
                         <div>
-                            <h1 className="text-2xl font-bold text-white print:text-black tracking-tight">Panel de investigación</h1>
-                            <p className="text-sm text-morado-200/80 print:text-black">01/2026 · Madurez digital en microemprendimientos</p>
+                            <h1 className="text-xl sm:text-2xl font-bold text-white print:text-black tracking-tight">Panel de investigación</h1>
+                            <p className="text-xs sm:text-sm text-morado-200/80 print:text-black">01/2026 · Madurez digital</p>
                         </div>
                     </div>
                     <form action={logoutAdmin} className="print:hidden">
@@ -87,7 +87,7 @@ export default async function AdminDashboardPage() {
 
                 <main className="min-w-0 space-y-14 mt-6 lg:mt-0">
                     {/* 1. Resumen */}
-                    <Seccion id="resumen" titulo="Resumen" descripcion="Avance de la muestra, cobertura del listado y las cifras principales. Solo cuentan las evaluaciones marcadas como oficiales.">
+                    <Seccion id="resumen" titulo="Resumen" descripcion="Avance de la muestra, cobertura del listado y las cifras principales. DMI es el Índice de Madurez Digital, de 0 a 100. Solo cuentan las evaluaciones marcadas como oficiales.">
                         <Caja titulo="Avance de la muestra">
                             <div className="flex items-end justify-between mb-2">
                                 <span className="text-4xl font-bold text-tinta tabular-nums">
@@ -103,7 +103,8 @@ export default async function AdminDashboardPage() {
                                 {faltan > 0
                                     ? `Faltan ${faltan} emprendimientos para la muestra mínima de ${META_MUESTRA} comprometida en el proyecto.`
                                     : 'Muestra mínima alcanzada.'}
-                                {pendientes.length > 0 ? ` Hay ${pendientes.length} evaluación pendiente de decisión, que no cuenta todavía.` : ''}
+                                {pendientes.length > 0 ? ` ${pendientes.length === 1 ? 'Hay 1 evaluación pendiente de decisión' : `Hay ${pendientes.length} evaluaciones pendientes de decisión`}, que no cuenta todavía.` : ''}
+                                {pendientes.length > 0 ? <> <a href="#calidad" className="text-morado-700 underline underline-offset-2">Ir a la bandeja</a>.</> : null}
                             </p>
                         </Caja>
 
@@ -158,6 +159,7 @@ export default async function AdminDashboardPage() {
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                             <Caja titulo="Distribución del DMI">
                                 <Histograma datos={m.histogramaDmi} />
+                                <p className="mt-2 text-xs text-[#6b6480]">La barra de 30 a 40 cruza el umbral 33,33: reúne emprendimientos de Incipiente y de Transición. El nivel de cada uno está en el reparto.</p>
                             </Caja>
                             <Caja titulo="Reparto por nivel">
                                 <BarraNiveles datos={m.porNivel} />
@@ -167,12 +169,22 @@ export default async function AdminDashboardPage() {
                     </Seccion>
 
                     {/* 3. Dimensiones */}
-                    <Seccion id="dimensiones" titulo="Dimensiones" descripcion="Media, dispersión y consistencia de las seis dimensiones, de la más débil a la más fuerte. Punto: media. Trazo grueso: más y menos una desviación estándar. Trazo fino: mínimo y máximo.">
+                    <Seccion id="dimensiones" titulo="Dimensiones" descripcion="Media, dispersión y consistencia de las seis dimensiones, de la más débil a la más fuerte. Punto: media. Trazo grueso: más y menos una desviación estándar. Trazo fino: mínimo y máximo. Las líneas verticales oscuras marcan los umbrales de nivel, 33,33 y 66,66.">
                         <div className="space-y-4">
-                            <Caja titulo="Media por dimensión (0-100)" className="max-w-2xl">
+                            <Caja titulo="Media por dimensión (0-100)" className="max-w-2xl print:max-w-md">
                                 <PuntosDimension datos={m.porDimension} />
                             </Caja>
-                            <TablaCaja minimo={520} etiqueta="Estadísticas por dimensión">
+                            <ul className="md:hidden space-y-2">
+                                {m.porDimension.map((d) => (
+                                    <li key={d.nombre} className="rounded-lg border border-border bg-white p-3 text-sm">
+                                        <p className="font-semibold text-tinta">{corta(d.nombre)} <span className="tabular-nums">· media {n1(d.media)}</span></p>
+                                        <p className="text-xs text-[#5a5566] mt-1 tabular-nums">
+                                            Mediana {n1(d.mediana)} · DE {n1(d.desviacion)} · máx. {n1(d.max)} · en cero {d.enCero} de {m.n} · alfa {d.alfa === null ? '—' : n1(d.alfa, 2)}
+                                        </p>
+                                    </li>
+                                ))}
+                            </ul>
+                            <TablaCaja minimo={520} etiqueta="Estadísticas por dimensión" className="hidden md:block">
                                 <thead>
                                     <tr>
                                         <th className={TH}>Dimensión</th>
@@ -207,11 +219,10 @@ export default async function AdminDashboardPage() {
                             <ItemsApilados datos={m.distribucionItems} />
                         </Caja>
                         <Caja titulo="Los diez ítems más críticos">
-                            <TablaCaja minimo={560} etiqueta="Los diez ítems más críticos">
+                            <TablaCaja minimo={330} etiqueta="Los diez ítems más críticos">
                                 <thead>
                                     <tr>
-                                        <th className={TH}>Ítem</th>
-                                        <th className={TH}>Dimensión</th>
+                                        <th className={TH}>Ítem y dimensión</th>
                                         <th className={`${TH} text-right`}>Media (0-2)</th>
                                         <th className={`${TH} text-right`}>En cero</th>
                                     </tr>
@@ -222,8 +233,8 @@ export default async function AdminDashboardPage() {
                                             <td className={TD}>
                                                 <span className="font-mono text-[11px] text-[#6b6480] mr-2">{it.codigo}</span>
                                                 {it.etiqueta}
+                                                <div className="text-xs text-[#5a5566]">{corta(it.dimension)}</div>
                                             </td>
-                                            <td className={`${TD} text-xs text-[#5a5566]`}>{corta(it.dimension)}</td>
                                             <td className={`${TD} text-right tabular-nums font-semibold`}>{n1(it.media, 2)}</td>
                                             <td className={`${TD} text-right tabular-nums`}>{it.enCero} ({n1(it.pctEnCero)} %)</td>
                                         </tr>
@@ -237,22 +248,23 @@ export default async function AdminDashboardPage() {
                     <Seccion id="perfiles" titulo="Perfiles" descripcion="Cada fila es un emprendimiento con código anónimo, ordenado del DMI más alto al más bajo. Más oscuro, mayor madurez.">
                         <MapaCalor filas={perfiles} />
                         <Caja titulo="Por sector">
-                            <TablaCaja minimo={460} etiqueta="Reparto por sector">
+                            <TablaCaja minimo={330} etiqueta="Reparto por sector">
                                 <thead>
                                     <tr>
                                         <th className={TH}>Sector</th>
                                         <th className={`${TH} text-right`}>n</th>
                                         <th className={`${TH} text-right`}>DMI medio</th>
-                                        <th className={TH}>Lectura</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {m.porSector.map((s) => (
                                         <tr key={s.clave}>
-                                            <td className={TD}>{s.clave}</td>
+                                            <td className={TD}>
+                                                {s.clave}
+                                                <div className="text-xs text-[#5a5566]">{s.n < 5 ? '▲ Solo descriptivo (n menor que 5)' : 'Comparable'}</div>
+                                            </td>
                                             <td className={`${TD} text-right tabular-nums`}>{s.n}</td>
                                             <td className={`${TD} text-right tabular-nums font-semibold`}>{n1(s.dmiMedio)}</td>
-                                            <td className={`${TD} text-xs text-[#5a5566]`}>{s.n < 5 ? '▲ Solo descriptivo (n menor que 5)' : 'Comparable'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -309,7 +321,7 @@ export default async function AdminDashboardPage() {
                                                 {e.motivoMuestra ? <p className="text-xs text-[#6b6480] mt-1 max-w-md">{e.motivoMuestra}</p> : null}
                                                 <Link href={`/admin/${e.id}`} className="inline-flex items-center min-h-11 text-sm text-morado-600 underline">Ver detalle</Link>
                                             </div>
-                                            <ControlMuestra assessmentId={e.id} estado={e.estadoMuestra} motivo={e.motivoMuestra} />
+                                            <ControlMuestra assessmentId={e.id} estado={e.estadoMuestra} motivo={e.motivoMuestra} bandeja />
                                         </li>
                                     ))}
                                 </ul>
@@ -324,55 +336,25 @@ export default async function AdminDashboardPage() {
                                     {avisos.map((a, i) => (
                                         <li key={i}>
                                             <span aria-hidden className="text-naranja-600 mr-1.5">▲</span>
-                                            <span className="font-semibold text-tinta">{AVISO[a.tipo]}.</span> {a.companyName}: {a.texto}
+                                            <span className="font-semibold text-tinta">{AVISO[a.tipo]}.</span> {a.companyName.trim()}: {a.texto}
                                         </li>
                                     ))}
                                 </ul>
                             )}
                         </Caja>
 
-                        <TablaCaja minimo={880} etiqueta="Todas las evaluaciones">
-                            <thead>
-                                <tr>
-                                    <th className={TH}>Emprendimiento</th>
-                                    <th className={TH}>Reporte</th>
-                                    <th className={TH}>Fecha</th>
-                                    <th className={`${TH} text-right`}>DMI</th>
-                                    <th className={TH}>Estado</th>
-                                    <th className={TH}>Motivo</th>
-                                    <th className={`${TH} print:hidden`}>Cambiar</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {m.todas.map((e) => {
-                                    const r = ROTULO_ESTADO[e.estadoMuestra as EstadoMuestra] ?? { texto: e.estadoMuestra, marca: '?' }
-                                    return (
-                                        <tr key={e.id}>
-                                            <td className={TD}>
-                                                <Link href={`/admin/${e.id}`} className="inline-flex items-center min-h-11 min-w-11 text-morado-700 underline underline-offset-2">{e.companyName}</Link>
-                                            </td>
-                                            <td className={`${TD} font-mono text-[11px] text-[#6b6480]`}>{reportCode(e.id, e.createdAt)}</td>
-                                            <td className={`${TD} text-xs whitespace-nowrap`}>{fechaCorta(e.createdAt)}</td>
-                                            <td className={`${TD} text-right tabular-nums font-semibold`}>{n1(e.dmi)}</td>
-                                            <td className={`${TD} whitespace-nowrap`}>
-                                                <span aria-hidden className="mr-1.5">{r.marca}</span>
-                                                {r.texto}
-                                                {e.superada ? <div className="text-xs text-[#6b6480]">Reemplazada por otra más reciente</div> : null}
-                                            </td>
-                                            <td className={`${TD} text-xs text-[#5a5566] max-w-[260px]`}>{e.motivoMuestra ?? '—'}</td>
-                                            <td className={`${TD} print:hidden`}>
-                                                <details>
-                                                    <summary className="cursor-pointer inline-flex items-center min-h-11 text-sm text-morado-700 underline underline-offset-2">Cambiar estado</summary>
-                                                    <div className="mt-2">
-                                                        <ControlMuestra assessmentId={e.id} estado={e.estadoMuestra} motivo={e.motivoMuestra} />
-                                                    </div>
-                                                </details>
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </TablaCaja>
+                        <RegistrosEvaluaciones
+                            filas={m.todas.map((e) => ({
+                                id: e.id,
+                                empresa: e.companyName.trim(),
+                                reporte: reportCode(e.id, e.createdAt),
+                                fecha: fechaCorta(e.createdAt),
+                                dmi: n1(e.dmi),
+                                estado: e.estadoMuestra,
+                                motivo: e.motivoMuestra,
+                                superada: e.superada,
+                            }))}
+                        />
                     </Seccion>
                 </main>
             </div>

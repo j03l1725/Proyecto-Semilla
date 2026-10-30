@@ -440,7 +440,7 @@ export function revisionCalidad(todas: EvaluacionCalculada[]): AvisoCalidad[] {
                 companyId,
                 companyName: evs[0].companyName,
                 evaluaciones: pend.map((e) => e.id),
-                texto: `${pend.length} evaluación(es) pendiente(s) de decisión.`,
+                texto: pend.length === 1 ? '1 evaluación pendiente de decisión.' : `${pend.length} evaluaciones pendientes de decisión.`,
             })
     }
 

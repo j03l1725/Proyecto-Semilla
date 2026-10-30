@@ -9,7 +9,7 @@ interface Dim { nombre: string; media: number; desviacion: number; min: number; 
  */
 export function PuntosDimension({ datos }: { datos: Dim[] }) {
     const W = 360, fila = 46
-    const m = { l: 96, r: 14, t: 22, b: 30 }
+    const m = { l: 106, r: 14, t: 22, b: 30 }
     const H = m.t + m.b + fila * datos.length
     const iw = W - m.l - m.r
     const x = (v: number) => m.l + (Math.max(0, Math.min(100, v)) / 100) * iw
